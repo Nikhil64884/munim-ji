@@ -408,3 +408,36 @@ def test_voice_failure_clears_idempotency_marker(client, auth_headers, monkeypat
         )
 
     assert mark_message_processed(f"app:{PHONE}:voice-retry") is True
+
+
+def test_customer_phone_is_returned_in_list_customers(client, auth_headers):
+    client.post(
+        "/api/customers",
+        json={"name": "Sita", "phone": "+919876500000"},
+        headers=auth_headers,
+    )
+    res = client.get("/api/customers", headers=auth_headers)
+    assert res.status_code == 200
+    data = res.json()["customers"]
+    sita = next((c for c in data if c["name"] == "Sita"), None)
+    assert sita is not None
+    assert sita["phone"] == "+919876500000"
+
+
+def test_firebase_auth_returns_token_without_requiring_backend_otp(client, monkeypatch):
+    from app.config import config
+    from app.routes import auth
+
+    auth._verify_ip_failures.clear()
+    monkeypatch.setattr(config, "OTP_PROVIDER", "firebase")
+    monkeypatch.setattr(
+        auth, "verify_firebase_id_token", lambda token, phone: token == "valid-token"
+    )
+
+    res = client.post(
+        "/api/auth/verify-otp",
+        json={"phone": "9876543210", "firebase_id_token": "valid-token"},
+    )
+    assert res.status_code == 200
+    assert "token" in res.json()
+

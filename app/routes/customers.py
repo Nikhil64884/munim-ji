@@ -56,6 +56,7 @@ def list_customers(owner_id: str = Depends(current_owner)):
             {
                 "id": r["id"],
                 "name": r["name"],
+                "phone": r.get("phone") or "",
                 "balance_paise": r["balance_paise"],
                 "balance_display": format_inr(r["balance_paise"]),
             }

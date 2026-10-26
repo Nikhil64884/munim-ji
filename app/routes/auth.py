@@ -166,6 +166,8 @@ def verify(req: VerifyOtpReq, request: Request):
         ):
             _record_verify_failure(client_ip)
             raise HTTPException(401, "Invalid Firebase authentication token.")
+        return {"token": _issue_token(phone), "phone": phone}
+
     if not req.otp or not verify_otp(phone, req.otp):
         _record_verify_failure(client_ip)
         raise HTTPException(401, "Invalid OTP.")

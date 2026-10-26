@@ -172,7 +172,7 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   void _exportPdf() {
-    toast(context, 'PDF Summary download shuru ho gaya... 📄');
+    toast(context, 'PDF export jald aayega! Kripya Excel Export use karein 📄');
   }
 
   void _toLogin() => Navigator.of(context).pushAndRemoveUntil(

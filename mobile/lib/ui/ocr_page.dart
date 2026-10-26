@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'ui_kit.dart';
 
 class OcrPage extends StatefulWidget {
@@ -18,10 +20,34 @@ class _OcrPageState extends State<OcrPage> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _loadSavedCashEntries();
     _laserCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     );
+  }
+
+  Future<void> _loadSavedCashEntries() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('local_cashbook_entries');
+      if (raw != null && raw.isNotEmpty) {
+        final list = jsonDecode(raw) as List;
+        if (mounted) {
+          setState(() {
+            _cash.clear();
+            _cash.addAll(list.map((e) => Map<String, dynamic>.from(e as Map)));
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveCashEntries() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('local_cashbook_entries', jsonEncode(_cash));
+    } catch (_) {}
   }
 
   @override
@@ -72,6 +98,7 @@ class _OcrPageState extends State<OcrPage> with SingleTickerProviderStateMixin {
       });
       _extractedBill = null;
     });
+    _saveCashEntries();
     toast(context, '${inr(amtPaise)} Cashbook expense me jud gaya! 🧾');
   }
 
@@ -88,6 +115,7 @@ class _OcrPageState extends State<OcrPage> with SingleTickerProviderStateMixin {
               'time': 'Abhi',
             });
           });
+          _saveCashEntries();
         },
       ),
     );

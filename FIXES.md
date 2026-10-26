@@ -100,9 +100,11 @@ plus the P2/P3 items that were cheap and safe. 20 regression tests were added in
 | Unknown customer reported a zero balance | New `get_customer_id_by_name()`; `_handle_query()` answers with `CUSTOMER_NOT_FOUND` |
 | `AllCustomers` silently cut off at 20 | New `SUMMARY_MORE` line: "… aur N grahak" |
 | Ambiguity prompt could render an empty list | `format_ambiguity_message([])` falls back to `CLARIFICATION_NAME`; empty options consume the context and start fresh |
-| `phone` accepted then dropped | `Customer.phone` column + idempotent `phone` migration + persistence in `get_or_create_customer()`; route passes it through |
+| `phone` accepted then dropped | `Customer.phone` column + idempotent `phone` migration + persistence in `get_or_create_customer()`; `list_customers_with_balance()` and `GET /api/customers` now return `phone`, restoring customer phone search & card display in Flutter app |
 | Voice retry blocked forever after one failure | `/api/voice` clears the idempotency marker on rejection and on exception |
 | Daily backup task could be GC'd / never ran | Moved into `lifespan`, reference kept on `app.state`, cancelled on shutdown; runs an idempotent backup on startup and then at 02:00 local; Sentry init moved after `setup_logging()`; deprecated `@app.on_event` removed |
+| Firebase login always threw 401 | Fixed verification fallthrough in `routes/auth.py` so valid Firebase ID tokens immediately return JWT token |
+| Cashbook entries lost on tab switch | Added `SharedPreferences` persistence in `mobile/lib/ui/ocr_page.dart` |
 
 ---
 

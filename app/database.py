@@ -535,7 +535,7 @@ def find_similar_customers(owner_id: str, name: str, limit: int = 5) -> list[dic
 def list_customers_with_balance(owner_id: str, party_type: str | None = None) -> list[dict]:
     """Every customer with net balance (paise). Sorted by owed DESC."""
     query = """
-            SELECT c.id, c.name, COALESCE(c.party_type, 'customer') AS party_type,
+            SELECT c.id, c.name, c.phone, COALESCE(c.party_type, 'customer') AS party_type,
               COALESCE(SUM(CASE WHEN t.transaction_type IN ('Debit','Sale')
                                 THEN t.amount_paise ELSE 0 END), 0) AS owed,
               COALESCE(SUM(CASE WHEN t.transaction_type = 'Credit'
@@ -551,7 +551,7 @@ def list_customers_with_balance(owner_id: str, party_type: str | None = None) ->
         params["pt"] = party_type.strip().lower()
 
     query += """
-            GROUP BY c.id, c.name, c.party_type
+            GROUP BY c.id, c.name, c.phone, c.party_type
             ORDER BY (owed - paid) DESC
     """
     with get_db() as db:
@@ -560,8 +560,9 @@ def list_customers_with_balance(owner_id: str, party_type: str | None = None) ->
         {
             "id": r[0],
             "name": r[1],
-            "party_type": r[2] or "customer",
-            "balance_paise": int((r[3] or 0) - (r[4] or 0)),
+            "phone": r[2] or "",
+            "party_type": r[3] or "customer",
+            "balance_paise": int((r[4] or 0) - (r[5] or 0)),
         }
         for r in rows
     ]
