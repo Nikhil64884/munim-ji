@@ -57,6 +57,24 @@ docker compose up --build
 The compose file mounts `./data`, `./exports` and `./logs` so the SQLite database
 and generated files survive container restarts.
 
+## 📱 Android app
+
+The Flutter app lives in `mobile/`; Render hosts the backend API, not the Android app.
+Pushing to `main` or `master` builds a release APK with GitHub Actions. Download it
+from the completed workflow run's **Artifacts** section. The build connects to
+`https://munim-yvqh.onrender.com`.
+
+To build locally on Windows:
+
+```powershell
+cd mobile
+flutter pub get
+flutter build apk --release --dart-define=APP_API_BASE_URL=https://munim-yvqh.onrender.com
+```
+
+The APK is created at
+`mobile/build/app/outputs/flutter-apk/app-release.apk`.
+
 ## ⚙️ Configuration notes
 
 - `ENV=dev` (default in `.env.example`): dev OTP `123456` is accepted and echoed

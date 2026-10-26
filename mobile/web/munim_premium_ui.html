@@ -1,0 +1,2935 @@
+<!DOCTYPE html>
+<html lang="hi" class="h-full antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Munim Ji AI - Smart Khata & Accounting Dashboard</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eefbf4',
+                            100: '#d5f6e2',
+                            500: '#0f6b4f', // Deep Indian Emerald
+                            600: '#0b543d',
+                            700: '#08402e',
+                            800: '#062d20',
+                            900: '#031a13',
+                            gold: '#f2b84b', // Festive Indian Gold Accent
+                            goldDark: '#d99f32',
+                            red: '#d1382c',  // Udhaar Red
+                            green: '#0d8a58' // Jama Green
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(242, 184, 75, 0.3)',
+                        'float': '0 12px 32px rgba(0, 0, 0, 0.15)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Scanner Overlay Bounding Box Animation */
+        @keyframes scanLaser {
+            0% { top: 10%; opacity: 0.8; }
+            50% { top: 85%; opacity: 1; }
+            100% { top: 10%; opacity: 0.8; }
+        }
+        .scanner-laser {
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #f2b84b, #ffffff, #f2b84b, transparent);
+            box-shadow: 0 0 15px #f2b84b;
+            animation: scanLaser 2.2s ease-in-out infinite;
+        }
+
+        /* Voice Waveform Pulse */
+        @keyframes soundWave {
+            0%, 100% { height: 8px; }
+            50% { height: 32px; }
+        }
+        .wave-bar {
+            width: 4px;
+            background-color: #f2b84b;
+            border-radius: 999px;
+            animation: soundWave 1.2s ease-in-out infinite;
+        }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+        /* Smooth Tab View Switching */
+        .tab-panel {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .tab-panel.active-panel {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased h-full flex justify-center items-center sm:py-6 transition-colors duration-300">
+
+    <!-- DEVICE FRAME WRAPPER -->
+    <div class="w-full max-w-md h-full sm:h-[880px] bg-gray-50 dark:bg-gray-900 sm:rounded-[40px] sm:border-[8px] sm:border-gray-800 shadow-2xl relative flex flex-col overflow-hidden">
+        
+        <!-- HEADER BAR -->
+        <header class="bg-gradient-to-r from-brand-700 via-brand-500 to-brand-600 text-white px-4 pt-4 pb-3 sticky top-0 z-30 border-b border-white/10 shadow-md">
+            <div class="flex items-center justify-between">
+                
+                <!-- Business Profile Dropdown & WhatsApp-Style Back Button -->
+                <div class="flex items-center space-x-2.5">
+                    <!-- WhatsApp-Style Back to Home Button -->
+                    <button id="headerHomeBackBtn" onclick="openTab('home')" class="hidden items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white active:scale-95 transition -ml-1 shadow-sm border border-white/20" title="Home Par Jayein">
+                        <i class="fa-solid fa-arrow-left text-sm"></i>
+                    </button>
+
+                    <div class="relative cursor-pointer" onclick="openTab('home')" title="Home Page">
+                        <div class="w-10 h-10 rounded-2xl bg-brand-gold text-gray-950 font-black text-base flex items-center justify-center shadow-md active:scale-95 transition">
+                            M
+                        </div>
+                        <span class="w-3 h-3 bg-emerald-400 border-2 border-brand-700 rounded-full absolute -bottom-0.5 -right-0.5"></span>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-1 cursor-pointer" onclick="toggleShopNamePrompt()">
+                            <h2 class="text-xs font-extrabold tracking-tight" id="headerShopTitle">Sharma Kirana Store</h2>
+                            <i class="fa-solid fa-angle-down text-[10px] text-brand-gold"></i>
+                        </div>
+                        <div class="flex items-center space-x-2 text-[10px] text-emerald-100/90 font-medium cursor-pointer" onclick="openTab('home')">
+                            <span id="headerGreeting">Namaste Sharma Ji 🙏</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Header Action Buttons -->
+                <div class="flex items-center space-x-2">
+                    
+                    <!-- Sync Queue Indicator -->
+                    <button onclick="showSyncToast()" class="bg-black/20 hover:bg-black/30 text-white px-2 py-1 rounded-full text-[10px] font-extrabold flex items-center space-x-1 border border-white/10">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span id="syncQueueCount">Sync (0)</span>
+                    </button>
+
+                    <!-- Language Cycle Button -->
+                    <button onclick="cycleLanguage()" class="bg-white/15 hover:bg-white/25 text-white px-2.5 py-1 rounded-full text-xs font-bold flex items-center space-x-1 border border-white/20 active:scale-95 transition">
+                        <i class="fa-solid fa-language text-brand-gold"></i>
+                        <span id="langPill">Hinglish</span>
+                    </button>
+
+                    <!-- Theme Switcher -->
+                    <button onclick="toggleDarkMode()" class="w-8 h-8 rounded-full bg-white/15 border border-white/20 flex items-center justify-center text-white active:scale-95 transition">
+                        <i class="fa-solid fa-moon text-xs dark:hidden"></i>
+                        <i class="fa-solid fa-sun text-xs hidden dark:block text-brand-gold"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN SCROLLABLE CONTENT CANVAS -->
+        <main class="flex-1 overflow-y-auto no-scrollbar px-4 pt-3 pb-28 space-y-4">
+
+            <!-- ================= TAB 1: HOME ================= -->
+            <div id="panel-home" class="tab-panel active-panel space-y-4">
+                
+                <!-- MARKET DUES SUMMARY CARD -->
+                <div class="bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 p-4 rounded-3xl text-white shadow-md relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-brand-gold/20 rounded-full blur-xl pointer-events-none"></div>
+
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-[10px] font-bold text-emerald-200 tracking-wider uppercase block" data-i18n="lblTotalUdhaar">Kul Udhaar (Lene Hain)</span>
+                            <div class="text-3xl font-black tracking-tight mt-0.5">₹ <span id="valTotalDue">28,450</span></div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] font-bold text-emerald-200 tracking-wider uppercase block" data-i18n="lblTotalAdvance">Advance (Dene Hain)</span>
+                            <div class="text-base font-extrabold text-brand-gold mt-0.5">₹ <span id="valTotalAdvance">4,200</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Vasooli Target Progress Bar -->
+                    <div class="bg-black/25 p-2.5 rounded-2xl border border-white/10 space-y-1.5 backdrop-blur-xs">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span class="text-emerald-100 text-[11px]" data-i18n="lblVasooliTarget">Iss mahine ki Vasooli Target</span>
+                            <span class="text-brand-gold font-extrabold">68% <i class="fa-solid fa-arrow-trend-up text-[10px]"></i></span>
+                        </div>
+                        <div class="w-full bg-brand-900/60 rounded-full h-2 overflow-hidden p-0.5">
+                            <div class="bg-gradient-to-r from-brand-gold to-emerald-300 h-1.5 rounded-full w-[68%] transition-all duration-500"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUICK ACTIONS GRID -->
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="openAddCustModal()" class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl flex flex-col items-center justify-center space-y-1.5 shadow-sm active:scale-95 transition">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-brand-500 dark:text-emerald-400 flex items-center justify-center text-base font-bold">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-gray-800 dark:text-gray-200 text-center leading-tight" data-i18n="btnNayaGrahak">+ Grahak</span>
+                    </button>
+
+                    <button onclick="openTab('voice')" class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl flex flex-col items-center justify-center space-y-1.5 shadow-sm active:scale-95 transition">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-brand-goldDark flex items-center justify-center text-base font-bold">
+                            <i class="fa-solid fa-microphone"></i>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-gray-800 dark:text-gray-200 text-center leading-tight" data-i18n="btnVoiceEntry">Voice Entry</span>
+                    </button>
+
+                    <button onclick="openTab('ocr')" class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl flex flex-col items-center justify-center space-y-1.5 shadow-sm active:scale-95 transition">
+                        <div class="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-base font-bold">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-gray-800 dark:text-gray-200 text-center leading-tight" data-i18n="btnScanBill">Bill Scan</span>
+                    </button>
+
+                    <button onclick="openQrModal()" class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl flex flex-col items-center justify-center space-y-1.5 shadow-sm active:scale-95 transition">
+                        <div class="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base font-bold">
+                            <i class="fa-solid fa-qrcode"></i>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-gray-800 dark:text-gray-200 text-center leading-tight" data-i18n="btnMeraQR">Mera QR</span>
+                    </button>
+                </div>
+
+                <!-- AI SMART INSIGHT BANNER -->
+                <div class="bg-gradient-to-r from-amber-500/10 via-brand-gold/10 to-transparent p-3.5 rounded-2xl border border-brand-gold/30 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-brand-gold text-gray-950 flex items-center justify-center text-sm font-black shadow-sm shrink-0">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-gray-900 dark:text-white" data-i18n="titleAiInsight">Munim AI Smart Alert</h4>
+                            <p class="text-[11px] text-gray-600 dark:text-gray-300" id="aiInsightMessage">Ramesh Sharma ki due date 3 din upar hai. Aaj WhatsApp reminder bhejein?</p>
+                        </div>
+                    </div>
+                    <button onclick="openWhatsAppModal(1)" class="px-3 py-1.5 bg-brand-500 text-white rounded-xl text-xs font-bold shadow-sm active:scale-95 transition whitespace-nowrap">
+                        Remind
+                    </button>
+                </div>
+
+                <!-- TOP DUES CAROUSEL -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-extrabold text-gray-700 dark:text-gray-300 uppercase tracking-wider" data-i18n="titleHighDues">Sabse Bada Udhaar (Top Dues)</h3>
+                        <button onclick="openTab('khata')" class="text-xs font-bold text-brand-500 dark:text-emerald-400">Sabhi Dekhein &rarr;</button>
+                    </div>
+
+                    <div class="flex space-x-3 overflow-x-auto no-scrollbar pb-1" id="topDuesCarousel">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- RECENT TRANSACTIONS PREVIEW -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-1.5">
+                            <h3 class="text-xs font-extrabold text-gray-700 dark:text-gray-300 uppercase tracking-wider" data-i18n="titleRecentActivity">Haal Hi Ki Entries</h3>
+                            <span class="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-brand-500 dark:text-emerald-400 font-bold px-1.5 py-0.5 rounded-full">Live Sync</span>
+                        </div>
+                        <button onclick="openAddCustModal()" class="px-2.5 py-1 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center space-x-1 active:scale-95 transition">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>+ Nayi Entry</span>
+                        </button>
+                    </div>
+
+                    <!-- DIRECT CUSTOMER SEARCH BAR RIGHT HERE -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-gray-400 text-xs"></i>
+                        <input type="text" id="homeCustomerSearch" oninput="filterHomeRecentList()" placeholder="Grahak ka naam ya number yahan search karein..." class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 rounded-2xl pl-9 pr-8 py-2 text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-brand-500 transition shadow-xs">
+                        <button id="homeSearchClearBtn" onclick="clearHomeCustomerSearch()" class="hidden absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-xs">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-2" id="homeRecentActivityList">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ================= TAB 2: KHATA DIRECTORY ================= -->
+            <div id="panel-khata" class="tab-panel space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-extrabold text-gray-900 dark:text-white" data-i18n="titleKhataDirectory">Grahak Khata Directory</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400" id="khataDirectoryCount">4 Grahak judey hain</p>
+                    </div>
+                    <button onclick="openAddCustModal()" class="px-3 py-1.5 bg-brand-500 text-white rounded-xl text-xs font-bold shadow-sm active:scale-95 transition">
+                        + Naya Grahak
+                    </button>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                    <input type="text" id="khataSearch" onkeyup="filterKhataList()" placeholder="Naam ya mobile number se khojein..." class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 rounded-2xl pl-9 pr-4 py-2.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-brand-500 transition">
+                </div>
+
+                <!-- Category Filter Chips -->
+                <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar">
+                    <button onclick="setKhataFilter('all')" id="chip-all" class="khata-chip text-xs px-3 py-1.5 rounded-xl font-bold bg-brand-500 text-white">
+                        Sabhi (All)
+                    </button>
+                    <button onclick="setKhataFilter('due')" id="chip-due" class="khata-chip text-xs px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                        🔴 Lene Hain (Due)
+                    </button>
+                    <button onclick="setKhataFilter('advance')" id="chip-advance" class="khata-chip text-xs px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                        🟢 Advance
+                    </button>
+                    <button onclick="setKhataFilter('supplier')" id="chip-supplier" class="khata-chip text-xs px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                        📦 Suppliers
+                    </button>
+                </div>
+
+                <!-- Customers List -->
+                <div id="khataCustomerList" class="space-y-2.5">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <!-- ================= TAB 3: AI VOICE ASSISTANT ================= -->
+            <div id="panel-voice" class="tab-panel space-y-3">
+                <div class="bg-gradient-to-r from-brand-600 to-brand-700 p-4 rounded-3xl text-white space-y-2 shadow-md">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 bg-brand-gold rounded-full animate-ping"></span>
+                            <h3 class="text-sm font-extrabold">Munim AI Voice Assistant</h3>
+                        </div>
+                        <span class="text-[10px] bg-white/20 text-white font-bold px-2 py-0.5 rounded-full">Hindi / Hinglish</span>
+                    </div>
+                    <p class="text-xs text-emerald-100 leading-relaxed">
+                        Bol kar hisab likhein: <span class="font-bold text-brand-gold">"Ramesh ko ₹500 ka atta udhaar diya"</span>
+                    </p>
+                </div>
+
+                <!-- Live Chat Window -->
+                <div id="voiceChatContainer" class="space-y-3 min-h-[300px] max-h-[360px] overflow-y-auto no-scrollbar p-1">
+                    <div class="flex items-start space-x-2.5">
+                        <div class="w-8 h-8 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-black shrink-0">
+                            AI
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl rounded-tl-none max-w-[85%] space-y-1 shadow-sm">
+                            <p class="text-xs text-gray-800 dark:text-gray-200 font-medium">
+                                Namaste Sharma Ji! Main aapka AI Munim hu. Koi bhi khata entry bolen ya neeche diye prompts par tap karein.
+                            </p>
+                            <span class="text-[9px] text-gray-400 block text-right">Just now</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voice Prompt Chips -->
+                <div class="flex space-x-2 overflow-x-auto no-scrollbar pt-1">
+                    <button onclick="triggerSampleVoice('Ramesh ko ₹500 ka atta udhaar diya')" class="text-[10px] bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 whitespace-nowrap shadow-xs">
+                        "Ramesh ₹500 udhaar"
+                    </button>
+                    <button onclick="triggerSampleVoice('Suresh ne ₹1000 jama karwaye')" class="text-[10px] bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 whitespace-nowrap shadow-xs">
+                        "Suresh ₹1000 jama"
+                    </button>
+                    <button onclick="triggerSampleVoice('Aaj ki total sale kitni hui?')" class="text-[10px] bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 whitespace-nowrap shadow-xs">
+                        "Aaj ki total sale?"
+                    </button>
+                </div>
+
+                <!-- Sound Wave Visualizer (Active during recording) -->
+                <div id="waveVisualizer" class="hidden flex justify-center items-center space-x-1.5 h-8 my-1 bg-amber-500/10 dark:bg-amber-500/20 border border-brand-gold/30 rounded-2xl p-2">
+                    <span class="text-[10px] font-bold text-amber-700 dark:text-brand-gold mr-2">Sun raha hoon...</span>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+
+                <!-- Bottom Corner Premium AI Mic Bar -->
+                <div class="flex items-center space-x-2.5 pt-2">
+                    <div class="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl flex items-center px-3.5 py-2.5 shadow-sm">
+                        <input type="text" id="voiceTextInput" placeholder="Bolein ya likhein jaise: Suresh 500..." class="flex-1 bg-transparent text-xs text-gray-900 dark:text-white focus:outline-none placeholder-gray-400" onkeydown="if(event.key==='Enter') sendManualVoiceText()">
+                        <button onclick="sendManualVoiceText()" class="text-brand-500 hover:text-brand-600 ml-2 active:scale-90 transition">
+                            <i class="fa-solid fa-paper-plane text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- PREMIUM AI MIC BUTTON IN CORNER -->
+                    <div class="relative shrink-0">
+                        <button onclick="toggleVoiceRecording()" id="voiceMicBtn" class="w-13 h-13 rounded-full bg-gradient-to-tr from-brand-gold via-amber-400 to-amber-500 text-gray-950 flex items-center justify-center text-xl shadow-glow border-2 border-amber-200 dark:border-amber-400 active:scale-90 transition relative z-10" title="Munim AI Se Baat Karein">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                        <span class="absolute -top-1 -right-1 bg-emerald-700 text-amber-300 font-black text-[8px] px-1 py-0.5 rounded-md border border-amber-300 z-20 shadow-xs">AI</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= TAB 4: OCR BILL SCANNER & CASHBOOK ================= -->
+            <div id="panel-ocr" class="tab-panel space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-extrabold text-gray-900 dark:text-white" data-i18n="titleOcrCashbook">OCR Scan & Cashbook</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Supplier invoices & Daily Cash register</p>
+                    </div>
+                    <span class="text-xs bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold px-2.5 py-1 rounded-full">AI OCR 2.0</span>
+                </div>
+
+                <!-- CASH IN & OUT METRICS -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 p-3 rounded-2xl">
+                        <span class="text-[10px] font-extrabold text-brand-green dark:text-emerald-400 uppercase tracking-wider block">Cash IN (+ Sale)</span>
+                        <span class="text-lg font-black text-emerald-900 dark:text-emerald-200 mt-0.5 block">₹ <span id="cashInTotal">14,200</span></span>
+                    </div>
+                    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 p-3 rounded-2xl">
+                        <span class="text-[10px] font-extrabold text-brand-red dark:text-rose-400 uppercase tracking-wider block">Cash OUT (- Expense)</span>
+                        <span class="text-lg font-black text-rose-900 dark:text-rose-200 mt-0.5 block">₹ <span id="cashOutTotal">3,450</span></span>
+                    </div>
+                </div>
+
+                <!-- GALLA MILAN & CHHOOTA CASH RECONCILIATION BAR -->
+                <div class="bg-gradient-to-r from-amber-500/15 via-brand-gold/20 to-emerald-500/15 border border-brand-gold/50 p-3 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-brand-gold text-gray-950 flex items-center justify-center font-extrabold text-base shadow-sm shrink-0">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-black text-gray-900 dark:text-white flex items-center gap-1.5">
+                                Galla Milan (Cash Tally)
+                                <span class="text-[9px] bg-brand-gold/30 text-amber-900 dark:text-brand-gold px-1.5 py-0.5 rounded-md font-bold">Smart Tool</span>
+                            </h4>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400">Bhooli hui cash sale ko 1-click me barabar karein</p>
+                        </div>
+                    </div>
+                    <button onclick="openGallaMilanModal()" class="px-3 py-1.5 bg-gradient-to-r from-brand-gold to-amber-400 hover:from-amber-400 hover:to-brand-gold text-gray-950 font-black rounded-xl text-xs shadow-sm active:scale-95 transition whitespace-nowrap">
+                        Galla Milayein
+                    </button>
+                </div>
+
+                <!-- QUICK BATCH & MISSED CASH SHORTCUT CHIPS -->
+                <div class="flex space-x-1.5 overflow-x-auto no-scrollbar">
+                    <button onclick="quickAddCashEntry('Dopahar Counter Sale', 3500)" class="text-[10px] bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 whitespace-nowrap font-bold active:scale-95 transition">
+                        + ☀️ Dopahar Batch (₹3,500)
+                    </button>
+                    <button onclick="quickAddCashEntry('Shaam Counter Sale', 4500)" class="text-[10px] bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 whitespace-nowrap font-bold active:scale-95 transition">
+                        + 🌙 Shaam Batch (₹4,500)
+                    </button>
+                    <button onclick="promptMissedCashEntry()" class="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-2.5 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-700/60 whitespace-nowrap font-bold active:scale-95 transition">
+                        + 💰 Chhoota Cash Samaan
+                    </button>
+                </div>
+
+                <!-- CAMERA VIEWPORT SCANNER BOX -->
+                <div class="bg-gray-900 rounded-3xl p-4 text-center space-y-3 relative overflow-hidden border border-gray-800 shadow-md">
+                    <div class="relative w-full h-44 bg-gray-950 rounded-2xl overflow-hidden flex flex-col items-center justify-center border border-gray-800">
+                        <div class="scanner-laser"></div>
+                        <i class="fa-solid fa-file-invoice text-4xl text-gray-700 mb-2"></i>
+                        <p class="text-xs text-gray-400 font-medium">Wholesaler Invoice Camera Preview</p>
+                        
+                        <!-- Upload Input Overlay -->
+                        <input type="file" accept="image/*" onchange="processOcrScan(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+                    </div>
+
+                    <div class="flex justify-between items-center px-1">
+                        <span class="text-[11px] text-gray-400">Photo upload karein ya camera se lein</span>
+                        <button class="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-sm pointer-events-none">
+                            <i class="fa-solid fa-camera mr-1"></i> Scan Bill
+                        </button>
+                    </div>
+                </div>
+
+                <!-- EXTRACTION RESULT PANEL (HIDDEN BY DEFAULT) -->
+                <div id="ocrResultBox" class="hidden bg-white dark:bg-gray-800 p-4 rounded-3xl border border-emerald-500/40 space-y-3 shadow-md">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-extrabold text-brand-green dark:text-emerald-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> Bill Extracted Successfully
+                        </span>
+                        <span class="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full">98% Accuracy</span>
+                    </div>
+
+                    <div class="space-y-1.5 text-xs text-gray-700 dark:text-gray-300 pt-1 border-t border-gray-100 dark:border-gray-700">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Supplier:</span>
+                            <span class="font-bold text-gray-900 dark:text-white" id="ocrSupplierName">Gupta Wholesalers Agra</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Invoice Amount:</span>
+                            <span class="font-black text-brand-red text-sm" id="ocrAmount">₹ 14,250</span>
+                        </div>
+                    </div>
+
+                    <button onclick="commitOcrExpense()" class="w-full py-2.5 bg-brand-500 text-white font-bold rounded-2xl text-xs shadow-sm">
+                        + Cashbook Expense Me Jodein
+                    </button>
+                </div>
+
+                <!-- DAILY CASHBOOK LOGS -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-xs font-extrabold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Aaj Ki Cash Entries</h4>
+                        <button onclick="promptAddCashEntry()" class="text-xs font-bold text-brand-500 dark:text-emerald-400">+ Cash Entry</button>
+                    </div>
+                    <div class="space-y-2" id="cashbookLogContainer">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= TAB 5: REPORTS & SETTINGS ================= -->
+            <div id="panel-reports" class="tab-panel space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-extrabold text-gray-900 dark:text-white" data-i18n="titleReportsProfile">Business Reports & Settings</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Sharma Kirana Store • GST Active</p>
+                    </div>
+                    <span class="text-xs bg-brand-gold/20 text-brand-goldDark dark:text-brand-gold font-extrabold px-2.5 py-1 rounded-full">PRO</span>
+                </div>
+
+                <!-- STATS SUMMARY CARDS -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white dark:bg-gray-800 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-700/60 shadow-sm">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Monthly Sales</span>
+                        <div class="text-lg font-black text-gray-900 dark:text-white mt-0.5">₹ 1,84,000</div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-700/60 shadow-sm">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Est. Net Profit</span>
+                        <div class="text-lg font-black text-brand-green mt-0.5">₹ 32,500</div>
+                    </div>
+                </div>
+
+                <!-- EXPORTS SECTION -->
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border border-gray-100 dark:border-gray-700/60 space-y-3 shadow-sm">
+                    <h4 class="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">Download Reports</h4>
+                    
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button onclick="downloadExcelReport()" class="py-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 rounded-xl text-xs font-bold flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-file-excel text-sm"></i>
+                            <span>Excel Export</span>
+                        </button>
+                        <button onclick="downloadPdfReport()" class="py-2.5 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 rounded-xl text-xs font-bold flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-file-pdf text-sm"></i>
+                            <span>PDF Summary</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SETTINGS MENU LIST -->
+                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700/60 overflow-hidden divide-y divide-gray-100 dark:divide-gray-700/60 shadow-sm">
+                    <div class="p-3.5 flex justify-between items-center">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-xs">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-bold text-gray-900 dark:text-white">Google Drive Backup</h5>
+                                <p class="text-[10px] text-gray-400">Auto backup midnight 12 AM</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-extrabold text-brand-green">ACTIVE</span>
+                    </div>
+
+                    <div class="p-3.5 flex justify-between items-center cursor-pointer" onclick="cycleLanguage()">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-xs">
+                                <i class="fa-solid fa-language"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-bold text-gray-900 dark:text-white">App Language</h5>
+                                <p class="text-[10px] text-gray-400" id="settingsLangSub">Current: Hinglish</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                    </div>
+
+                    <div class="p-3.5 flex justify-between items-center cursor-pointer" onclick="toggleDarkMode()">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-xs">
+                                <i class="fa-solid fa-moon"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-bold text-gray-900 dark:text-white">Dark Mode Theme</h5>
+                                <p class="text-[10px] text-gray-400">Comfortable for night use</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-brand-500 dark:text-brand-gold" id="themeStatusLabel">Off</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- FLOATING BOTTOM DOCK NAVIGATION -->
+        <nav class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md absolute bottom-3 left-3 right-3 rounded-3xl p-1.5 z-40 flex items-center justify-between shadow-float border border-gray-200/80 dark:border-gray-800">
+            <button onclick="openTab('home')" id="nav-home" class="nav-btn flex-1 flex flex-col items-center py-1 text-brand-500 dark:text-brand-gold">
+                <i class="fa-solid fa-house text-base"></i>
+                <span class="text-[10px] font-bold mt-0.5">Home</span>
+            </button>
+
+            <button onclick="openTab('khata')" id="nav-khata" class="nav-btn flex-1 flex flex-col items-center py-1 text-gray-400">
+                <i class="fa-solid fa-address-book text-base"></i>
+                <span class="text-[10px] font-bold mt-0.5">Khata</span>
+            </button>
+
+            <!-- CENTER NOTCHED GOLD MIC BUTTON -->
+            <div class="relative -mt-7 px-1">
+                <button onclick="openAiAssistantModal()" class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-gold to-amber-400 text-gray-950 flex items-center justify-center text-xl shadow-glow border-4 border-gray-50 dark:border-gray-900 active:scale-90 transition">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+            </div>
+
+            <button onclick="openTab('ocr')" id="nav-ocr" class="nav-btn flex-1 flex flex-col items-center py-1 text-gray-400">
+                <i class="fa-solid fa-camera-retro text-base"></i>
+                <span class="text-[10px] font-bold mt-0.5">Bill OCR</span>
+            </button>
+
+            <button onclick="openTab('reports')" id="nav-reports" class="nav-btn flex-1 flex flex-col items-center py-1 text-gray-400">
+                <i class="fa-solid fa-chart-pie text-base"></i>
+                <span class="text-[10px] font-bold mt-0.5">Reports</span>
+            </button>
+        </nav>
+
+        <!-- ================= MODALS & OVERLAYS ================= -->
+
+        <!-- MODAL 1: NUMPAD ENTRY TRANSACTION MODAL -->
+        <div id="modalNumpad" class="hidden absolute inset-0 bg-black/70 backdrop-blur-xs z-50 flex flex-col justify-end">
+            <div class="bg-white dark:bg-gray-900 rounded-t-[36px] border-t border-gray-200 dark:border-gray-800 p-5 space-y-3.5 max-h-[92%] overflow-y-auto">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-gray-900 dark:text-white" id="txCustName">Ramesh Sharma</h3>
+                        <p class="text-[11px] text-gray-500" id="txCustPhone">9876543210</p>
+                    </div>
+                    <button onclick="closeModal('modalNumpad')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Transaction Type Buttons -->
+                <div class="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-2xl">
+                    <button onclick="setTxType('udhaar')" id="txTypeUdhaarBtn" class="py-2.5 rounded-xl text-xs font-bold bg-brand-red text-white shadow-sm">
+                        🔴 Udhaar Diya (Gave)
+                    </button>
+                    <button onclick="setTxType('jama')" id="txTypeJamaBtn" class="py-2.5 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-400">
+                        🟢 Jama Mila (Got)
+                    </button>
+                </div>
+
+                <!-- Big Display -->
+                <div class="bg-gray-50 dark:bg-gray-950 p-3.5 rounded-2xl text-center border border-gray-200 dark:border-gray-800">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest block">Amount (₹)</span>
+                    <div class="text-3xl font-black text-gray-900 dark:text-white mt-0.5" id="numpadValDisplay">₹ 0</div>
+                </div>
+
+                <!-- Item Description Input -->
+                <input type="text" id="txItemDesc" placeholder="Items (e.g. 2kg Atta, Oil)..." class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-2.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-brand-500">
+
+                <!-- Touch Numpad Grid -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="pressNumpad('1')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">1</button>
+                    <button onclick="pressNumpad('2')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">2</button>
+                    <button onclick="pressNumpad('3')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">3</button>
+                    <button onclick="pressNumpad('4')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">4</button>
+                    <button onclick="pressNumpad('5')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">5</button>
+                    <button onclick="pressNumpad('6')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">6</button>
+                    <button onclick="pressNumpad('7')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">7</button>
+                    <button onclick="pressNumpad('8')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">8</button>
+                    <button onclick="pressNumpad('9')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">9</button>
+                    <button onclick="clearNumpad()" class="py-2.5 bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 rounded-xl font-bold text-xs">C</button>
+                    <button onclick="pressNumpad('0')" class="py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-base text-gray-900 dark:text-white">0</button>
+                    <button onclick="backspaceNumpad()" class="py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-bold text-sm"><i class="fa-solid fa-backspace"></i></button>
+                </div>
+
+                <button onclick="submitTransaction()" class="w-full py-3 bg-brand-500 text-white font-bold rounded-2xl text-xs shadow-md">
+                    Save Entry in Khata
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL 2: CUSTOMER LEDGER TIMELINE DRAWER -->
+        <div id="modalLedgerDrawer" class="hidden absolute inset-0 bg-black/70 backdrop-blur-xs z-50 flex flex-col justify-end">
+            <div class="bg-white dark:bg-gray-900 rounded-t-[36px] border-t border-gray-200 dark:border-gray-800 p-5 space-y-4 max-h-[90%] overflow-y-auto">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <div class="flex items-center space-x-2.5">
+                        <!-- WhatsApp-Style Back / Home Arrow -->
+                        <button onclick="closeModal('modalLedgerDrawer'); openTab('home');" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-brand-500 hover:text-white flex items-center justify-center active:scale-95 transition shrink-0" title="Home Par Wapas Jayein">
+                            <i class="fa-solid fa-arrow-left text-sm"></i>
+                        </button>
+                        <div class="w-10 h-10 rounded-2xl bg-brand-500 text-white font-bold flex items-center justify-center text-sm cursor-pointer active:scale-95 transition" onclick="closeModal('modalLedgerDrawer'); openTab('home');" id="ledgerAvatar" title="Home Par Jayein">
+                            R
+                        </div>
+                        <div class="cursor-pointer" onclick="closeModal('modalLedgerDrawer'); openTab('home');" title="Home Par Jayein">
+                            <h3 class="text-sm font-extrabold text-gray-900 dark:text-white" id="ledgerCustTitle">Ramesh Sharma</h3>
+                            <p class="text-[11px] text-gray-400" id="ledgerCustSub">9876543210</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1.5">
+                        <!-- Direct Home Button -->
+                        <button onclick="closeModal('modalLedgerDrawer'); openTab('home');" class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-brand-green dark:text-emerald-400 flex items-center justify-center active:scale-95 transition" title="Home Screen">
+                            <i class="fa-solid fa-house text-xs"></i>
+                        </button>
+                        <button onclick="closeModal('modalLedgerDrawer')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center active:scale-95 transition">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Total Balance Pill Banner -->
+                <div class="bg-gray-50 dark:bg-gray-800 p-3.5 rounded-2xl flex justify-between items-center border border-gray-200 dark:border-gray-700">
+                    <div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase block">Current Net Balance</span>
+                        <div class="text-xl font-black text-brand-red" id="ledgerBalanceVal">₹ 2,450 Due</div>
+                    </div>
+                    <button onclick="openWhatsAppModal(activeCustId)" class="px-3 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center space-x-1.5 shadow-sm">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span>WhatsApp</span>
+                    </button>
+                </div>
+
+                <!-- Transaction Timeline -->
+                <div class="space-y-2">
+                    <h4 class="text-xs font-extrabold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Transaction Timeline</h4>
+                    <div id="ledgerTimelineItems" class="space-y-2">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button onclick="openNumpadModalForActiveCust('udhaar')" class="py-3 bg-brand-red text-white font-bold rounded-2xl text-xs">
+                        + Udhaar Diya
+                    </button>
+                    <button onclick="openNumpadModalForActiveCust('jama')" class="py-3 bg-brand-green text-white font-bold rounded-2xl text-xs">
+                        + Jama Mila
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 3: WHATSAPP REMINDER GENERATOR -->
+        <div id="modalWhatsApp" class="hidden absolute inset-0 bg-black/70 backdrop-blur-xs z-50 flex flex-col justify-end">
+            <div class="bg-white dark:bg-gray-900 rounded-t-[36px] border-t border-gray-200 dark:border-gray-800 p-5 space-y-4">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-brands fa-whatsapp text-emerald-500 text-2xl"></i>
+                        <h3 class="text-sm font-extrabold text-gray-900 dark:text-white">AI WhatsApp Reminder</h3>
+                    </div>
+                    <button onclick="closeModal('modalWhatsApp')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-800 p-3.5 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-1.5">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Generated Message Script</span>
+                    <p class="text-xs text-gray-800 dark:text-gray-200 leading-relaxed font-medium" id="whatsappScriptBody">
+                        "Namaste Ramesh Ji 🙏, Sharma Kirana Store par aapka ₹2,450 ka baaki hai. Kripya UPI QR code par payment karein. Dhanyawad!"
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5 pt-1">
+                    <button onclick="speakWhatsAppAudio()" class="py-3 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-2xl text-xs font-bold flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-volume-high"></i>
+                        <span>Sunein</span>
+                    </button>
+                    <button onclick="sendWhatsAppMessage()" class="py-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold flex items-center justify-center space-x-2 shadow-md">
+                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                        <span>WhatsApp Bhejein</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 4: ADD NEW CUSTOMER -->
+        <div id="modalAddCust" class="hidden absolute inset-0 bg-black/75 backdrop-blur-xs z-50 flex flex-col justify-end">
+            <div class="bg-white dark:bg-gray-900 rounded-t-[36px] border-t border-gray-200 dark:border-gray-800 p-5 space-y-4">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-gray-900 dark:text-white">+ Naya Grahak Add Karein</h3>
+                        <p class="text-[10px] text-gray-400">Grahak save hote hi hisaab samne khul jayega</p>
+                    </div>
+                    <button onclick="closeModal('modalAddCust')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <form onsubmit="handleNewCustSubmit(event)" class="space-y-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Grahak Ka Naam *</label>
+                        <input type="text" id="addCustName" required placeholder="e.g. Vikram Singh" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-2.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-brand-500 font-semibold">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Mobile Number (Optional)</label>
+                        <input type="tel" id="addCustPhone" placeholder="10 digit number" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-2.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <!-- Optional First Hisaab / Entry -->
+                    <div class="p-3 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-gray-700/60 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-gray-500 uppercase">Pehla Hisaab (Optional)</span>
+                            <span class="text-[9px] text-brand-500 dark:text-emerald-400 font-bold">Turant jodein</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <div class="relative flex-1">
+                                <span class="absolute left-3 top-2 text-xs font-bold text-gray-400">₹</span>
+                                <input type="number" id="addCustInitAmount" placeholder="Amount (e.g. 500)" class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-7 pr-3 py-1.5 text-xs text-gray-900 dark:text-white font-bold focus:outline-none focus:border-brand-500">
+                            </div>
+                            <select id="addCustInitType" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:border-brand-500">
+                                <option value="udhaar">🔴 Udhaar (Debit)</option>
+                                <option value="jama">🟢 Jama (Credit)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 bg-[#046c4e] hover:bg-[#03543d] text-white font-extrabold rounded-2xl text-xs shadow-md active:scale-95 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-user-check text-sm"></i>
+                        <span>Save & Turant Hisaab Kholein &rarr;</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: QUICK ENTRY CUSTOMER PICKER -->
+        <div id="modalQuickEntry" class="hidden absolute inset-0 bg-black/75 backdrop-blur-xs z-50 flex flex-col justify-end">
+            <div class="bg-white dark:bg-gray-900 rounded-t-[36px] border-t border-gray-200 dark:border-gray-800 p-5 space-y-3.5 max-h-[85%] overflow-y-auto">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-gray-900 dark:text-white">Nayi Entry Karein (+ Khata)</h3>
+                        <p class="text-[10px] text-gray-400">Grahak chunein aur turant udhaar/jama darj karein</p>
+                    </div>
+                    <button onclick="closeModal('modalQuickEntry')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Fast Customer Picker List -->
+                <div class="space-y-1.5" id="quickEntryCustomerList">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <div class="pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <button onclick="closeModal('modalQuickEntry'); openAddCustModal();" class="w-full py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-bold rounded-2xl text-xs flex items-center justify-center space-x-1.5 hover:bg-gray-200">
+                        <i class="fa-solid fa-user-plus text-brand-500"></i>
+                        <span>+ Kisi Naye Grahak Ka Khata Kholein</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: UDHAAR / JAMA POPUP ON CUSTOMER TAP -->
+        <div id="modalUdhaarJamaChoice" class="hidden absolute inset-0 bg-black/75 backdrop-blur-xs z-50 flex flex-col justify-end">
+            <div class="bg-white dark:bg-gray-900 rounded-t-[36px] border-t border-gray-200 dark:border-gray-800 p-5 space-y-4">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-2xl bg-brand-500 text-white font-extrabold flex items-center justify-center text-sm" id="choiceCustAvatar">
+                            R
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-gray-900 dark:text-white" id="choiceCustName">Ramesh Sharma</h3>
+                            <p class="text-[11px] text-gray-400" id="choiceCustSub">9876543210 • Net: ₹2,450 Due</p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal('modalUdhaarJamaChoice')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="text-center py-0.5">
+                    <p class="text-xs font-black text-gray-700 dark:text-gray-300">Grahak ke khate me kya entry karni hai?</p>
+                </div>
+
+                <!-- Two Big Vibrant Action Buttons -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="chooseCustAction('udhaar')" class="p-4 bg-rose-50 dark:bg-rose-950/60 border-2 border-rose-300 dark:border-rose-900 hover:border-brand-red rounded-3xl text-left space-y-2 active:scale-95 transition shadow-sm group">
+                        <div class="w-11 h-11 rounded-2xl bg-brand-red text-white flex items-center justify-center text-lg font-black shadow-md group-hover:scale-105 transition">
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-black text-brand-red">🔴 Udhaar Diya</h4>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">Samaan ya udhaar likhein</p>
+                        </div>
+                    </button>
+
+                    <button onclick="chooseCustAction('jama')" class="p-4 bg-emerald-50 dark:bg-emerald-950/60 border-2 border-emerald-300 dark:border-emerald-900 hover:border-brand-green rounded-3xl text-left space-y-2 active:scale-95 transition shadow-sm group">
+                        <div class="w-11 h-11 rounded-2xl bg-brand-green text-white flex items-center justify-center text-lg font-black shadow-md group-hover:scale-105 transition">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-black text-brand-green">🟢 Jama Mila</h4>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">Payment / paise darj karein</p>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Secondary Quick Links -->
+                <div class="pt-2 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 text-xs">
+                    <button onclick="openLedgerFromChoice()" class="text-brand-500 dark:text-brand-gold font-bold flex items-center space-x-1.5 hover:underline">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Poora Hisaab (Ledger) Dekhein &rarr;</span>
+                    </button>
+                    <button onclick="openWhatsAppFromChoice()" class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 font-bold rounded-xl flex items-center space-x-1 border border-emerald-200 dark:border-emerald-800">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span>Reminder</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 5: QR CODE DISPLAY -->
+        <div id="modalQr" class="hidden absolute inset-0 bg-black/70 backdrop-blur-xs z-50 flex flex-col justify-end">
+            <div class="bg-white dark:bg-gray-900 rounded-t-[36px] border-t border-gray-200 dark:border-gray-800 p-6 text-center space-y-4">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <h3 class="text-sm font-extrabold text-gray-900 dark:text-white">Sharma Kirana UPI QR Code</h3>
+                    <button onclick="closeModal('modalQr')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="bg-white p-4 rounded-3xl border border-gray-200 shadow-inner inline-block">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=sharmakirana@upi&pn=SharmaKirana" alt="UPI QR Code" class="w-44 h-44 mx-auto rounded-xl">
+                </div>
+
+                <div class="text-xs text-gray-600 dark:text-gray-300 font-bold">
+                    UPI ID: <span class="text-brand-500 dark:text-emerald-400">sharmakirana@upi</span>
+                </div>
+
+                <button onclick="closeModal('modalQr')" class="w-full py-3 bg-brand-500 text-white font-bold rounded-2xl text-xs">
+                    Close
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL: FASTAPI BACKEND SERVER STATUS & SYNC -->
+        <div id="modalBackendSync" class="hidden absolute inset-0 bg-black/75 backdrop-blur-xs z-50 flex flex-col justify-end">
+            <div class="bg-white dark:bg-gray-900 rounded-t-[36px] border-t border-gray-200 dark:border-gray-800 p-6 space-y-4">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-brand-green flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-server"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-gray-900 dark:text-white">FastAPI Backend Connection</h3>
+                            <p class="text-[10px] text-gray-400">Live SQLite + JWT Authentication</p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal('modalBackendSync')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/60">
+                        <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Server Status</span>
+                        <div class="flex items-center space-x-1.5" id="backendStatusPill">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="backendDot"></span>
+                            <span class="text-xs font-black text-brand-green" id="backendStatusLabel">Connected (Port 8000)</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1">Backend Server Base URL</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="backendUrlInput" value="http://127.0.0.1:8000" class="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs font-mono text-gray-900 dark:text-white focus:outline-none focus:border-brand-500">
+                            <button onclick="updateBackendUrlFromInput()" class="px-3 py-2 bg-brand-500 text-white rounded-xl text-xs font-bold shadow-sm active:scale-95 transition">Save</button>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1">Local PC: http://127.0.0.1:8000 | Wi-Fi IP: http://192.168.0.104:8000</p>
+                    </div>
+
+                    <div class="flex space-x-2 pt-2">
+                        <button onclick="syncFromBackend(true)" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1 shadow-sm active:scale-95 transition">
+                            <i class="fa-solid fa-rotate"></i>
+                            <span>Sync Data Now</span>
+                        </button>
+                        <button onclick="closeModal('modalBackendSync')" class="py-2.5 px-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: GALLA MILAN & CASH RECONCILIATION -->
+        <div id="modalGallaMilan" class="hidden absolute inset-0 bg-black/75 backdrop-blur-xs z-50 flex flex-col justify-end">
+            <div class="bg-white dark:bg-gray-900 rounded-t-[36px] border-t border-gray-200 dark:border-gray-800 p-5 space-y-4 max-h-[92%] overflow-y-auto">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-xl bg-brand-gold text-gray-950 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-gray-900 dark:text-white">Galla Milan (गल्ला मिलान)</h3>
+                            <p class="text-[10px] text-gray-400">Galle ke cash se chhooti hui bikri auto-match karein</p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal('modalGallaMilan')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Tally Comparison Grid -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-2xl border border-gray-200 dark:border-gray-700">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">App Me Likha Cash</span>
+                        <div class="text-lg font-black text-gray-900 dark:text-white mt-0.5" id="gallaCurrentLoggedCash">₹ 14,200</div>
+                    </div>
+                    <div class="bg-emerald-50 dark:bg-emerald-950/40 p-3 rounded-2xl border border-emerald-200 dark:border-emerald-800/40">
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Farq (Chhooti Sale)</span>
+                        <div class="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5" id="gallaDifferenceDisplay">₹ 0</div>
+                    </div>
+                </div>
+
+                <!-- Physical Cash Input -->
+                <div>
+                    <label class="text-[11px] font-extrabold text-gray-700 dark:text-gray-300 block mb-1">
+                        💵 Asli Galle Me Kitna Cash Hai? (Physical Count)
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-2.5 text-base font-black text-gray-400">₹</span>
+                        <input type="number" id="gallaPhysicalInput" oninput="calculateGallaDiff()" placeholder="e.g. 15000" class="w-full bg-gray-50 dark:bg-gray-800 border-2 border-brand-gold/60 rounded-2xl pl-8 pr-4 py-2.5 text-base text-gray-900 dark:text-white font-black focus:outline-none focus:border-brand-gold">
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">Dukan badhate waqt galle ke note gin kar likhein</p>
+                </div>
+
+                <!-- Explanation status message -->
+                <div id="gallaStatusNote" class="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-800/50 text-[11px] text-amber-900 dark:text-amber-200 font-medium">
+                    💡 <strong>Munim Ji Advice:</strong> Galle ka cash likhein, agar din me koi cash sale likhni chhoot gayi thi toh farq apne-aap nikal aayega aur ek click me Cashbook me jud jayega!
+                </div>
+
+                <!-- Submit Button -->
+                <button onclick="commitGallaAdjustment()" id="btnApplyGallaMilan" class="w-full py-3 bg-gradient-to-r from-brand-gold to-amber-400 hover:from-amber-400 hover:to-brand-gold text-gray-950 font-black rounded-2xl text-xs shadow-md active:scale-95 transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Galla Barabar Karein (Auto-Adjust Cash)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL 6: MUNIM JI CONVERSATIONAL AI CHAT & VOICE INTERFACE -->
+        <div id="modalAiAssistant" class="hidden absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col justify-end transition-opacity duration-300">
+            <div class="bg-gray-900 border-t-2 border-brand-gold/60 rounded-t-[40px] p-4 sm:p-5 flex flex-col max-h-[92%] h-[680px] text-white shadow-2xl relative overflow-hidden">
+                
+                <!-- Glow Accent Bar -->
+                <div class="w-12 h-1.5 bg-brand-gold/60 rounded-full mx-auto -mt-1 mb-2 shrink-0"></div>
+
+                <!-- Header Bar -->
+                <div class="flex justify-between items-center pb-2.5 border-b border-gray-800 shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <!-- WhatsApp-Style Back to Home Button -->
+                        <button onclick="closeAiAssistantModal(); openTab('home');" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs active:scale-95 transition" title="Home Par Jayein">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <div class="relative cursor-pointer" onclick="closeAiAssistantModal(); openTab('home');" title="Home Par Jayein">
+                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-gold via-amber-400 to-emerald-400 text-gray-950 flex items-center justify-center font-black text-lg shadow-glow">
+                                👳
+                            </div>
+                            <span class="w-3 h-3 bg-emerald-400 border-2 border-gray-900 rounded-full absolute -bottom-0.5 -right-0.5 animate-pulse"></span>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-1.5">
+                                <h3 class="text-sm font-extrabold text-white">Munim Ji AI</h3>
+                                <span class="text-[9px] bg-brand-gold/20 text-brand-gold font-bold px-1.5 py-0.5 rounded-md border border-brand-gold/30">Dukan Ka Munim</span>
+                            </div>
+                            <p class="text-[10px] text-emerald-300/90 font-medium">Poora hisaab jaanta hai • Friendly Assistant</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <!-- Home Icon Button -->
+                        <button onclick="closeAiAssistantModal(); openTab('home');" title="Home Page" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-emerald-400 flex items-center justify-center text-xs transition">
+                            <i class="fa-solid fa-house"></i>
+                        </button>
+                        <button onclick="clearMunimChat()" title="Clear Chat" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 flex items-center justify-center text-xs transition">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                        <button onclick="closeAiAssistantModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 flex items-center justify-center transition">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Account Knowledge Quick Strip -->
+                <div class="bg-gray-800/80 p-2 rounded-xl border border-white/5 flex justify-between items-center text-[11px] shrink-0 my-1">
+                    <div class="flex items-center space-x-1 text-gray-300">
+                        <span class="text-gray-400">Kul Udhaar:</span>
+                        <span id="aiSummaryDue" class="font-bold text-brand-red">₹ 28,450</span>
+                    </div>
+                    <div class="h-3 w-px bg-white/10"></div>
+                    <div class="flex items-center space-x-1 text-gray-300">
+                        <span class="text-gray-400">Advance:</span>
+                        <span id="aiSummaryAdvance" class="font-bold text-brand-gold">₹ 4,200</span>
+                    </div>
+                    <div class="h-3 w-px bg-white/10"></div>
+                    <div class="flex items-center space-x-1 text-gray-300">
+                        <span class="text-gray-400">Grahak:</span>
+                        <span id="aiSummaryCount" class="font-bold text-emerald-400">4 Active</span>
+                    </div>
+                </div>
+
+                <!-- Central Scrollable Chat Stream -->
+                <div id="munimChatStream" class="flex-1 overflow-y-auto no-scrollbar space-y-3 py-2 pr-1">
+                    <!-- Initial Welcome Message from Munim Ji -->
+                    <div class="flex items-start space-x-2.5">
+                        <div class="w-8 h-8 rounded-full bg-brand-gold text-gray-950 flex items-center justify-center text-xs font-black shrink-0 shadow-sm">
+                            👳
+                        </div>
+                        <div class="bg-gray-800 border border-gray-700/80 p-3 rounded-2xl rounded-tl-none max-w-[85%] space-y-1 shadow-sm">
+                            <div class="flex items-center justify-between text-[10px] text-brand-gold font-bold">
+                                <span>Munim Ji</span>
+                                <span class="text-gray-400">Live</span>
+                            </div>
+                            <p class="text-xs text-gray-100 font-medium leading-relaxed">
+                                Namaste Seth Ji! 🙏 Hukum kijiye. Main aapki dukan ka poora hisaab jaanta hoon.
+                                <br><br>
+                                Aap mujhse kuch bhi bol kar pooch sakte hain ya hisaab likhwa sakte hain!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Voice Pulse Waveform (Appears when listening) -->
+                <div id="aiVoiceListeningBar" class="hidden bg-emerald-950/80 border border-emerald-500/40 p-2 rounded-2xl flex items-center justify-between shrink-0 mb-1">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-brand-gold animate-ping"></div>
+                        <span id="aiListeningStatusText" class="text-xs font-extrabold text-emerald-300">Seth Ji, main sun raha hoon... Boliye!</span>
+                    </div>
+                    <div class="flex items-center space-x-1 h-4">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                </div>
+
+                <!-- Quick Suggested Command Chips -->
+                <div class="shrink-0 pt-1">
+                    <div class="flex space-x-1.5 overflow-x-auto no-scrollbar pb-1">
+                        <button onclick="handleMunimPrompt('Ramesh ka kitna hisaab baaki hai?')" class="text-[10px] bg-white/10 hover:bg-white/20 text-gray-200 px-2.5 py-1.5 rounded-xl border border-white/10 whitespace-nowrap active:scale-95 transition">
+                            ❓ "Ramesh ka hisaab?"
+                        </button>
+                        <button onclick="handleMunimPrompt('Ramesh ko ₹500 ka atta udhaar likho')" class="text-[10px] bg-white/10 hover:bg-white/20 text-gray-200 px-2.5 py-1.5 rounded-xl border border-white/10 whitespace-nowrap active:scale-95 transition">
+                            🔴 "Ramesh ko ₹500 udhaar"
+                        </button>
+                        <button onclick="handleMunimPrompt('Suresh ne ₹1000 cash jama karwaye')" class="text-[10px] bg-white/10 hover:bg-white/20 text-gray-200 px-2.5 py-1.5 rounded-xl border border-white/10 whitespace-nowrap active:scale-95 transition">
+                            🟢 "Suresh ₹1000 jama"
+                        </button>
+                        <button onclick="handleMunimPrompt('Aaj ki total bikri kitni hui?')" class="text-[10px] bg-white/10 hover:bg-white/20 text-gray-200 px-2.5 py-1.5 rounded-xl border border-white/10 whitespace-nowrap active:scale-95 transition">
+                            📊 "Aaj ki total bikri?"
+                        </button>
+                        <button onclick="handleMunimPrompt('Sabse zyada udhaar kiska baaki hai?')" class="text-[10px] bg-white/10 hover:bg-white/20 text-gray-200 px-2.5 py-1.5 rounded-xl border border-white/10 whitespace-nowrap active:scale-95 transition">
+                            ⚠️ "Top Udhaar kiska hai?"
+                        </button>
+                        <button onclick="handleMunimPrompt('Ramesh ko WhatsApp reminder bhejo')" class="text-[10px] bg-white/10 hover:bg-white/20 text-gray-200 px-2.5 py-1.5 rounded-xl border border-white/10 whitespace-nowrap active:scale-95 transition">
+                            💬 "Ramesh ko reminder"
+                        </button>
+                        <button onclick="handleMunimPrompt('₹250 ka cash samaan likho jo chhoot gaya tha')" class="text-[10px] bg-emerald-950/80 hover:bg-emerald-900/80 text-emerald-300 px-2.5 py-1.5 rounded-xl border border-emerald-500/40 whitespace-nowrap active:scale-95 transition">
+                            💰 "₹250 chhoota cash likho"
+                        </button>
+                        <button onclick="handleMunimPrompt('Galla milao')" class="text-[10px] bg-amber-950/80 hover:bg-amber-900/80 text-brand-gold px-2.5 py-1.5 rounded-xl border border-brand-gold/40 whitespace-nowrap active:scale-95 transition">
+                            ⚖️ "Galla milao"
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bottom Input Bar (Mic + Text + Send) -->
+                <div class="pt-2 border-t border-gray-800 flex items-center space-x-2 shrink-0">
+                    <button onclick="toggleAiVoiceListening()" id="munimInputMicBtn" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-gold to-amber-400 text-gray-950 flex items-center justify-center text-base shadow-glow active:scale-90 transition shrink-0">
+                        <i id="munimInputMicIcon" class="fa-solid fa-microphone"></i>
+                    </button>
+                    <input type="text" id="munimChatInput" onkeydown="if(event.key==='Enter') submitMunimChat()" placeholder="Hukum kijiye Seth Ji (Bolein ya likhein)..." class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-400 focus:outline-none focus:border-brand-gold">
+                    <button onclick="submitMunimChat()" class="w-10 h-10 rounded-xl bg-brand-500 hover:bg-brand-600 text-white flex items-center justify-center font-bold text-sm shrink-0 active:scale-95 transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TOAST NOTIFICATION CONTAINER -->
+        <div id="appToast" class="hidden absolute top-16 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-2xl text-xs font-bold shadow-2xl z-50 flex items-center space-x-2 border border-brand-gold/40">
+            <i class="fa-solid fa-circle-info text-brand-gold"></i>
+            <span id="toastMessage">Action completed successfully</span>
+        </div>
+
+    </div>
+
+    <!-- APPLICATION LOGIC & STATE MANAGEMENT -->
+    <script>
+        // --- MULTI-LANGUAGE TRANSLATION DATA ---
+        const i18nData = {
+            Hinglish: {
+                lblTotalUdhaar: "Kul Udhaar (Lene Hain)",
+                lblTotalAdvance: "Advance (Dene Hain)",
+                lblVasooliTarget: "Iss mahine ki Vasooli Target",
+                btnNayaGrahak: "+ Grahak",
+                btnVoiceEntry: "Voice Entry",
+                btnScanBill: "Bill Scan",
+                btnMeraQR: "Mera QR",
+                titleAiInsight: "Munim AI Smart Alert",
+                titleHighDues: "Sabse Bada Udhaar (Top Dues)",
+                titleRecentActivity: "Haal Hi Ki Entries",
+                titleKhataDirectory: "Grahak Khata Directory",
+                titleOcrCashbook: "OCR Scan & Cashbook",
+                titleReportsProfile: "Business Reports & Settings"
+            },
+            Hindi: {
+                lblTotalUdhaar: "कुल उधार (लेने हैं)",
+                lblTotalAdvance: "अग्रिम (देने हैं)",
+                lblVasooliTarget: "इस महीने की वसूली लक्ष्य",
+                btnNayaGrahak: "+ नया ग्राहक",
+                btnVoiceEntry: "आवाज़ से दर्ज",
+                btnScanBill: "बिल स्कैन",
+                btnMeraQR: "मेरा QR",
+                titleAiInsight: "मुनीम AI स्मार्ट अलर्ट",
+                titleHighDues: "सबसे बड़ा उधार (टॉप बकाया)",
+                titleRecentActivity: "हाल की प्रविष्टियां",
+                titleKhataDirectory: "ग्राहक खाता निर्देशिका",
+                titleOcrCashbook: "OCR स्कैन एवं रोकड़ बही",
+                titleReportsProfile: "व्यापार रिपोर्ट एवं सेटिंग्स"
+            },
+            English: {
+                lblTotalUdhaar: "Total Receivables",
+                lblTotalAdvance: "Total Payables",
+                lblVasooliTarget: "Monthly Recovery Goal",
+                btnNayaGrahak: "+ Customer",
+                btnVoiceEntry: "Voice Input",
+                btnScanBill: "OCR Scan",
+                btnMeraQR: "Shop QR",
+                titleAiInsight: "Munim AI Smart Alert",
+                titleHighDues: "Highest Outstanding Dues",
+                titleRecentActivity: "Recent Ledger Logs",
+                titleKhataDirectory: "Customer Directory",
+                titleOcrCashbook: "Invoice Scan & Cashbook",
+                titleReportsProfile: "Business Analytics & Settings"
+            }
+        };
+
+        // --- APP STATE ---
+        let currentLang = 'Hinglish';
+        let isDarkMode = false;
+        let activeTab = 'home';
+        let activeKhataFilter = 'all';
+        let activeCustId = 1;
+        let activeTxType = 'udhaar';
+        let numpadValue = "0";
+        let isVoiceRecording = false;
+
+        let customers = [
+            { id: 1, name: "Ramesh Sharma", phone: "9876543210", type: "customer", balance: -2450, lastActive: "Today",
+              history: [
+                { id: 101, desc: "2kg Atta + Fortune Oil", amount: 450, type: "udhaar", date: "Today 10:15 AM" },
+                { id: 102, desc: "Groceries Kirana", amount: 2000, type: "udhaar", date: "18 Oct 2026" }
+              ]
+            },
+            { id: 2, name: "Suresh Verma", phone: "9812345678", type: "customer", balance: -1800, lastActive: "Yesterday",
+              history: [{ id: 103, desc: "Milk & Biscuits", amount: 1800, type: "udhaar", date: "Yesterday" }]
+            },
+            { id: 3, name: "Anita Devi", phone: "9711223344", type: "customer", balance: 500, lastActive: "2 days ago",
+              history: [{ id: 104, desc: "Advance Deposit", amount: 500, type: "jama", date: "19 Oct 2026" }]
+            },
+            { id: 4, name: "Gupta Wholesalers", phone: "9988776655", type: "supplier", balance: -14250, lastActive: "3 days ago",
+              history: [{ id: 105, desc: "Oil & Sugar Stock", amount: 14250, type: "udhaar", date: "17 Oct 2026" }]
+            }
+        ];
+
+        let cashEntries = [
+            { id: 201, desc: "Morning Counter Sales", amount: 10200, type: "in", time: "11:30 AM" },
+            { id: 202, desc: "Dairy Milk Supply Payment", amount: 1450, type: "out", time: "01:15 PM" },
+            { id: 203, desc: "Evening Cash Sales", amount: 4000, type: "in", time: "07:00 PM" }
+        ];
+
+        // ================= FASTAPI BACKEND LIVE CONNECTOR =================
+        const BACKEND_CONFIG = {
+            baseUrl: localStorage.getItem('munim_api_url') || 'http://127.0.0.1:8000',
+            token: localStorage.getItem('munim_jwt_token') || '',
+            isOnline: false
+        };
+
+        async function initBackendConnection() {
+            try {
+                const healthRes = await fetch(`${BACKEND_CONFIG.baseUrl}/healthz`, { method: 'GET' })
+                    .catch(() => null);
+                
+                if (!healthRes || !healthRes.ok) {
+                    console.warn('[Munim Backend] Server offline or unreachable at', BACKEND_CONFIG.baseUrl);
+                    updateBackendStatus(false, 'Offline (Local Mode)');
+                    return false;
+                }
+
+                // Ensure Auth Token
+                if (!BACKEND_CONFIG.token) {
+                    await autoLoginBackend();
+                } else {
+                    const testRes = await fetch(`${BACKEND_CONFIG.baseUrl}/api/customers`, {
+                        headers: { 'Authorization': `Bearer ${BACKEND_CONFIG.token}` }
+                    }).catch(() => null);
+                    if (!testRes || testRes.status === 401) {
+                        await autoLoginBackend();
+                    }
+                }
+
+                await syncFromBackend(false);
+                updateBackendStatus(true, 'Live DB 🟢');
+                return true;
+            } catch (err) {
+                console.error('[Munim Backend] Init error:', err);
+                updateBackendStatus(false, 'Offline');
+                return false;
+            }
+        }
+
+        async function autoLoginBackend() {
+            try {
+                const otpRes = await fetch(`${BACKEND_CONFIG.baseUrl}/api/auth/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: '9876543210' })
+                });
+                const otpData = await otpRes.json();
+                const otp = otpData.otp || otpData.test_otp || '123456';
+
+                const verifyRes = await fetch(`${BACKEND_CONFIG.baseUrl}/api/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: '9876543210', otp: otp })
+                });
+                const verifyData = await verifyRes.json();
+                if (verifyData.token) {
+                    BACKEND_CONFIG.token = verifyData.token;
+                    localStorage.setItem('munim_jwt_token', verifyData.token);
+                    console.log('[Munim Backend] Successfully authenticated with JWT token!');
+                }
+            } catch (e) {
+                console.error('[Munim Backend] Auth error:', e);
+            }
+        }
+
+        async function syncFromBackend(showToastMsg = false) {
+            if (!BACKEND_CONFIG.token) return;
+            try {
+                const res = await fetch(`${BACKEND_CONFIG.baseUrl}/api/customers`, {
+                    headers: { 'Authorization': `Bearer ${BACKEND_CONFIG.token}` }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data && Array.isArray(data.customers)) {
+                    customers = data.customers.map(c => {
+                        const balPaise = Number(c.balance_paise) || 0;
+                        const balRupees = -(balPaise / 100);
+                        return {
+                            id: c.id,
+                            name: c.name,
+                            phone: c.phone || '9876543210',
+                            type: 'customer',
+                            balance: balRupees,
+                            lastActive: 'Live DB',
+                            history: []
+                        };
+                    });
+                    renderDashboard();
+                    if (showToastMsg) showToast("Live Backend data synced successfully! 🟢");
+                }
+            } catch (e) {
+                console.error('[Munim Backend] Sync error:', e);
+            }
+        }
+
+        function updateBackendStatus(isOnline, text) {
+            BACKEND_CONFIG.isOnline = isOnline;
+            const badge = document.getElementById('syncQueueCount');
+            if (badge) {
+                badge.textContent = text;
+                const dot = badge.previousElementSibling;
+                if (dot) {
+                    dot.className = isOnline 
+                        ? "w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
+                        : "w-1.5 h-1.5 rounded-full bg-amber-400";
+                }
+            }
+            const modalLabel = document.getElementById('backendStatusLabel');
+            if (modalLabel) {
+                modalLabel.textContent = isOnline ? 'Connected (Port 8000)' : 'Offline (Server Not Reached)';
+                modalLabel.className = isOnline ? 'text-xs font-black text-brand-green' : 'text-xs font-black text-brand-red';
+            }
+            const modalDot = document.getElementById('backendDot');
+            if (modalDot) {
+                modalDot.className = isOnline ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse' : 'w-2 h-2 rounded-full bg-rose-500';
+            }
+            const input = document.getElementById('backendUrlInput');
+            if (input) input.value = BACKEND_CONFIG.baseUrl;
+        }
+
+        function openBackendSyncModal() {
+            updateBackendStatus(BACKEND_CONFIG.isOnline, BACKEND_CONFIG.isOnline ? 'Live DB 🟢' : 'Offline');
+            document.getElementById('modalBackendSync').classList.remove('hidden');
+        }
+
+        async function updateBackendUrlFromInput() {
+            const val = document.getElementById('backendUrlInput').value.trim();
+            if (val) {
+                BACKEND_CONFIG.baseUrl = val;
+                localStorage.setItem('munim_api_url', val);
+                showToast("Server URL updated! Checking connection...");
+                await initBackendConnection();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderDashboard();
+            initBackendConnection();
+        });
+
+        function renderDashboard() {
+            calculateOverallTotals();
+            renderHomeComponents();
+            renderKhataList();
+            renderCashbookLogs();
+        }
+
+        function calculateOverallTotals() {
+            let totalDue = 0, totalAdvance = 0;
+            customers.forEach(c => {
+                if (c.balance < 0) totalDue += Math.abs(c.balance);
+                else if (c.balance > 0) totalAdvance += c.balance;
+            });
+            document.getElementById('valTotalDue').textContent = totalDue.toLocaleString();
+            document.getElementById('valTotalAdvance').textContent = totalAdvance.toLocaleString();
+        }
+
+        function renderHomeComponents() {
+            const carousel = document.getElementById('topDuesCarousel');
+            carousel.innerHTML = '';
+            customers.filter(c => c.balance < 0).forEach(c => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-gray-800 p-3 rounded-2xl border border-gray-100 dark:border-gray-700/60 min-w-[140px] shadow-sm shrink-0 space-y-2 cursor-pointer";
+                card.onclick = () => openLedgerDrawer(c.id);
+                card.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-full bg-brand-500/10 text-brand-500 font-bold text-xs flex items-center justify-center">${c.name.charAt(0)}</div>
+                        <span class="text-xs font-bold text-gray-900 dark:text-white truncate">${c.name.split(' ')[0]}</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] text-gray-400 block uppercase">Due Balance</span>
+                        <span class="text-xs font-black text-brand-red">₹ ${Math.abs(c.balance).toLocaleString()}</span>
+                    </div>`;
+                carousel.appendChild(card);
+            });
+
+            const searchInput = document.getElementById('homeCustomerSearch');
+            if (searchInput && searchInput.value.trim().length > 0) {
+                filterHomeRecentList();
+            } else {
+                renderDefaultHomeRecentActivity();
+            }
+        }
+
+        function renderDefaultHomeRecentActivity() {
+            const recentContainer = document.getElementById('homeRecentActivityList');
+            if (!recentContainer) return;
+            recentContainer.innerHTML = '';
+            let allHistory = [];
+            customers.forEach(c => c.history.forEach(h => allHistory.push({ ...h, customerName: c.name, customerId: c.id, customerBalance: c.balance })));
+            allHistory.slice(0, 4).forEach(h => {
+                const row = document.createElement('div');
+                row.className = "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition cursor-pointer active:scale-[0.99]";
+                // Clicking on the customer's name / row opens the Udhaar / Jama choice popup!
+                row.onclick = () => openCustEntryChoiceModal(h.customerId);
+
+                const initial = h.customerName.charAt(0);
+                const isUdhaar = h.type === 'udhaar';
+
+                row.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-2xl ${isUdhaar ? 'bg-rose-50 text-brand-red dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40' : 'bg-emerald-50 text-brand-green dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/40'} flex items-center justify-center text-sm font-black shrink-0">
+                            ${initial}
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-1.5">
+                                <h5 class="text-xs font-black text-gray-900 dark:text-white hover:text-brand-500 transition">${h.customerName}</h5>
+                                <span class="text-[9px] px-1.5 py-0.2 rounded font-bold ${isUdhaar ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'}">
+                                    ${isUdhaar ? 'Udhaar' : 'Jama'}
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-gray-400 block">${h.desc} • ${h.date}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <span class="text-xs font-black ${isUdhaar ? 'text-brand-red' : 'text-brand-green'} block">
+                                ${isUdhaar ? '-' : '+'}₹ ${h.amount.toLocaleString()}
+                            </span>
+                            <span class="text-[9px] text-gray-400">Net: ₹${Math.abs(h.customerBalance).toLocaleString()}</span>
+                        </div>
+                        <div class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700/80 flex items-center justify-center text-gray-400 text-[10px]">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </div>
+                    </div>`;
+                recentContainer.appendChild(row);
+            });
+        }
+
+        // --- INLINE SEARCH IN "HAAL HI KI ENTRIES" FOR SHOPKEEPER ---
+        function filterHomeRecentList() {
+            const input = document.getElementById('homeCustomerSearch');
+            const clearBtn = document.getElementById('homeSearchClearBtn');
+            const container = document.getElementById('homeRecentActivityList');
+            if (!input || !container) return;
+
+            const rawVal = input.value;
+            const query = rawVal.trim().toLowerCase();
+
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', query.length === 0);
+            }
+
+            if (!query) {
+                renderDefaultHomeRecentActivity();
+                return;
+            }
+
+            // Search in all customers by name or phone
+            const matchingCustomers = customers.filter(c => 
+                c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query))
+            );
+
+            container.innerHTML = '';
+
+            // Header summary
+            const hdr = document.createElement('div');
+            hdr.className = "flex items-center justify-between px-1 text-[11px] text-gray-500 dark:text-gray-400 font-semibold";
+            hdr.innerHTML = `
+                <span>"${rawVal.trim()}" ke results (${matchingCustomers.length})</span>
+                <span class="text-brand-500 dark:text-brand-gold font-bold">Tap karke Hisaab jodein</span>
+            `;
+            container.appendChild(hdr);
+
+            if (matchingCustomers.length === 0) {
+                const emptyCard = document.createElement('div');
+                emptyCard.className = "bg-white dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-700 p-4 rounded-2xl text-center space-y-2.5 shadow-sm";
+                const safeEscaped = rawVal.trim().replace(/"/g, '&quot;');
+                emptyCard.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-400 flex items-center justify-center mx-auto text-sm">
+                        <i class="fa-solid fa-user-xmark"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-800 dark:text-gray-200">"${safeEscaped}" naam ka koi grahak nahi mila</p>
+                        <p class="text-[10px] text-gray-400">Shopkeeper direct yahi se naya grahak jod sakte hain</p>
+                    </div>
+                    <button onclick="openAddCustModalWithName('${encodeURIComponent(rawVal.trim())}')" class="px-4 py-2 bg-gradient-to-r from-brand-500 to-emerald-600 hover:from-brand-600 hover:to-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md active:scale-95 transition flex items-center justify-center space-x-1.5 mx-auto">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>+ "${safeEscaped}" Ko Naya Grahak Jodein</span>
+                    </button>
+                `;
+                container.appendChild(emptyCard);
+                return;
+            }
+
+            matchingCustomers.forEach(c => {
+                const row = document.createElement('div');
+                row.className = "bg-white dark:bg-gray-800 border-2 border-brand-500/30 hover:border-brand-500 dark:border-brand-500/20 dark:hover:border-brand-500/50 p-3 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition cursor-pointer active:scale-[0.99] group";
+                // Tapping any searched customer immediately triggers the Udhaar / Jama choice modal
+                row.onclick = () => openCustEntryChoiceModal(c.id);
+
+                const initial = c.name.charAt(0);
+                let balBadge = "";
+                if (c.balance < 0) {
+                    balBadge = `<span class="text-xs font-black text-brand-red block">₹ ${Math.abs(c.balance).toLocaleString()}</span><span class="text-[9px] text-rose-500 font-bold uppercase">Udhaar Due</span>`;
+                } else if (c.balance > 0) {
+                    balBadge = `<span class="text-xs font-black text-brand-green block">₹ ${c.balance.toLocaleString()}</span><span class="text-[9px] text-emerald-500 font-bold uppercase">Advance</span>`;
+                } else {
+                    balBadge = `<span class="text-xs font-bold text-gray-400 block">₹ 0</span><span class="text-[9px] text-gray-400 uppercase">Settled</span>`;
+                }
+
+                row.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-500/20 to-brand-gold/20 text-brand-500 dark:text-brand-gold border border-brand-500/30 flex items-center justify-center text-sm font-black shrink-0 group-hover:scale-105 transition">
+                            ${initial}
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-1.5">
+                                <h5 class="text-xs font-black text-gray-900 dark:text-white group-hover:text-brand-500 transition">${c.name}</h5>
+                                <span class="text-[9px] px-1.5 py-0.2 rounded font-bold ${c.type === 'supplier' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'}">
+                                    ${c.type === 'supplier' ? 'Supplier' : 'Grahak'}
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-gray-400 block">${c.phone} • Last: ${c.lastActive}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2.5">
+                        <div class="text-right">
+                            ${balBadge}
+                        </div>
+                        <div class="px-2.5 py-1.5 bg-brand-50 dark:bg-brand-500/10 text-brand-500 dark:text-brand-gold rounded-xl text-[10px] font-black border border-brand-500/20 flex items-center space-x-1 group-hover:bg-brand-500 group-hover:text-white transition">
+                            <span>Hisaab Karein</span>
+                            <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function clearHomeCustomerSearch() {
+            const input = document.getElementById('homeCustomerSearch');
+            const clearBtn = document.getElementById('homeSearchClearBtn');
+            if (input) input.value = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
+            renderDefaultHomeRecentActivity();
+        }
+
+        function openAddCustModalWithName(rawEncodedName) {
+            const name = rawEncodedName ? decodeURIComponent(rawEncodedName) : '';
+            openAddCustModal();
+            const input = document.getElementById('addCustName');
+            if (input) input.value = name;
+        }
+
+        function renderKhataList() {
+            const container = document.getElementById('khataCustomerList');
+            container.innerHTML = '';
+            const filtered = customers.filter(c => {
+                if (activeKhataFilter === 'due') return c.balance < 0;
+                if (activeKhataFilter === 'advance') return c.balance > 0;
+                if (activeKhataFilter === 'supplier') return c.type === 'supplier';
+                return true;
+            });
+            document.getElementById('khataDirectoryCount').textContent = `${filtered.length} Grahak active hain`;
+            filtered.forEach(c => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3.5 rounded-2xl flex items-center justify-between shadow-sm cursor-pointer";
+                let balanceBadge = c.balance < 0
+                    ? `<div class="text-right"><span class="text-xs font-black text-brand-red block">₹ ${Math.abs(c.balance).toLocaleString()}</span><span class="text-[9px] text-gray-400 uppercase font-bold">Udhaar</span></div>`
+                    : c.balance > 0
+                    ? `<div class="text-right"><span class="text-xs font-black text-brand-green block">₹ ${c.balance.toLocaleString()}</span><span class="text-[9px] text-emerald-600 font-bold">Advance</span></div>`
+                    : `<div class="text-right"><span class="text-xs font-bold text-gray-400 block">₹ 0</span><span class="text-[9px] text-gray-400">Settled</span></div>`;
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3" onclick="openLedgerDrawer(${c.id})">
+                        <div class="w-10 h-10 rounded-2xl bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-extrabold flex items-center justify-center text-sm">${c.name.charAt(0)}</div>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-gray-900 dark:text-white">${c.name}</h4>
+                            <p class="text-[10px] text-gray-400">${c.phone} • ${c.lastActive}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        ${balanceBadge}
+                        ${c.balance < 0 ? `<button onclick="openWhatsAppModal(${c.id})" class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs"><i class="fa-brands fa-whatsapp"></i></button>` : ''}
+                    </div>`;
+                container.appendChild(card);
+            });
+        }
+
+        function filterKhataList() {
+            const query = document.getElementById('khataSearch').value.toLowerCase();
+            const container = document.getElementById('khataCustomerList');
+            Array.from(container.children).forEach((card, index) => {
+                const c = customers[index];
+                if (c) card.style.display = (c.name.toLowerCase().includes(query) || c.phone.includes(query)) ? 'flex' : 'none';
+            });
+        }
+
+        function setKhataFilter(filterKey) {
+            activeKhataFilter = filterKey;
+            document.querySelectorAll('.khata-chip').forEach(btn => {
+                btn.className = "khata-chip text-xs px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700";
+            });
+            document.getElementById(`chip-${filterKey}`).className = "khata-chip text-xs px-3 py-1.5 rounded-xl font-bold bg-brand-500 text-white";
+            renderKhataList();
+        }
+
+        function openLedgerDrawer(custId) {
+            activeCustId = custId;
+            const c = customers.find(item => item.id === custId);
+            if (!c) return;
+            document.getElementById('ledgerAvatar').textContent = c.name.charAt(0);
+            document.getElementById('ledgerCustTitle').textContent = c.name;
+            document.getElementById('ledgerCustSub').textContent = c.phone;
+            const balEl = document.getElementById('ledgerBalanceVal');
+            if (c.balance < 0) { balEl.textContent = `₹ ${Math.abs(c.balance).toLocaleString()} Udhaar Due`; balEl.className = "text-xl font-black text-brand-red"; }
+            else if (c.balance > 0) { balEl.textContent = `₹ ${c.balance.toLocaleString()} Advance`; balEl.className = "text-xl font-black text-brand-green"; }
+            else { balEl.textContent = `₹ 0 (Settled)`; balEl.className = "text-xl font-black text-gray-400"; }
+            
+            const renderTimeline = (hist) => {
+                const itemsContainer = document.getElementById('ledgerTimelineItems');
+                itemsContainer.innerHTML = '';
+                if (!hist || hist.length === 0) {
+                    itemsContainer.innerHTML = '<div class="text-center py-6 text-xs text-gray-400 font-semibold">Koi purana lenden record nahi mila.</div>';
+                    return;
+                }
+                hist.forEach(h => {
+                    const item = document.createElement('div');
+                    item.className = "bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl flex justify-between items-center";
+                    item.innerHTML = `<div><h5 class="text-xs font-extrabold text-gray-900 dark:text-white">${h.desc}</h5><span class="text-[10px] text-gray-400">${h.date}</span></div><span class="text-xs font-black ${h.type === 'udhaar' ? 'text-brand-red' : 'text-brand-green'}">${h.type === 'udhaar' ? '-' : '+'}₹ ${h.amount.toLocaleString()}</span>`;
+                    itemsContainer.appendChild(item);
+                });
+            };
+
+            renderTimeline(c.history);
+
+            // Fetch live entries from FastAPI if connected
+            if (BACKEND_CONFIG.isOnline && BACKEND_CONFIG.token) {
+                fetch(`${BACKEND_CONFIG.baseUrl}/api/customers/${custId}/ledger`, {
+                    headers: { 'Authorization': `Bearer ${BACKEND_CONFIG.token}` }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data && Array.isArray(data.entries)) {
+                        c.history = data.entries.map(e => ({
+                            id: e.id,
+                            desc: e.item_desc || (e.transaction_type === 'Debit' ? 'Udhaar Khata' : 'Jama Rakham'),
+                            amount: (Number(e.amount_paise) || 0) / 100,
+                            type: e.transaction_type === 'Debit' ? 'udhaar' : 'jama',
+                            date: e.created_at ? new Date(e.created_at).toLocaleDateString() : 'Recorded'
+                        }));
+                        renderTimeline(c.history);
+                    }
+                })
+                .catch(err => console.warn('[Munim Ledger] fetch error:', err));
+            }
+
+            document.getElementById('modalLedgerDrawer').classList.remove('hidden');
+        }
+
+        function openNumpadModalForActiveCust(type) {
+            closeModal('modalLedgerDrawer');
+            const c = customers.find(item => item.id === activeCustId);
+            if (!c) return;
+            document.getElementById('txCustName').textContent = c.name;
+            document.getElementById('txCustPhone').textContent = c.phone;
+            setTxType(type);
+            numpadValue = "0";
+            updateNumpadDisplay();
+            document.getElementById('modalNumpad').classList.remove('hidden');
+        }
+
+        function openNumpadModalForCust(custId, type) {
+            activeCustId = custId;
+            openNumpadModalForActiveCust(type);
+        }
+
+        // --- CUSTOMER ENTRY POPUP ENGINE (TAP NAME -> UDHAAR / JAMA POPUP) ---
+        let choiceCustId = 1;
+
+        function openCustEntryChoiceModal(custId) {
+            choiceCustId = custId;
+            activeCustId = custId;
+            const c = customers.find(item => item.id === custId);
+            if (!c) return;
+
+            document.getElementById('choiceCustAvatar').textContent = c.name.charAt(0);
+            document.getElementById('choiceCustName').textContent = c.name;
+            const balText = c.balance < 0 
+                ? `₹${Math.abs(c.balance).toLocaleString()} Udhaar Due` 
+                : (c.balance > 0 ? `₹${c.balance.toLocaleString()} Advance` : 'Hisaab Nil');
+            document.getElementById('choiceCustSub').textContent = `${c.phone} • Net: ${balText}`;
+
+            document.getElementById('modalUdhaarJamaChoice').classList.remove('hidden');
+        }
+
+        function chooseCustAction(type) {
+            closeModal('modalUdhaarJamaChoice');
+            openNumpadModalForCust(choiceCustId, type);
+        }
+
+        function openLedgerFromChoice() {
+            closeModal('modalUdhaarJamaChoice');
+            openLedgerDrawer(choiceCustId);
+        }
+
+        function openWhatsAppFromChoice() {
+            closeModal('modalUdhaarJamaChoice');
+            openWhatsAppModal(choiceCustId);
+        }
+
+        function openQuickEntryModal() {
+            openAddCustModal();
+        }
+
+        function setTxType(type) {
+            activeTxType = type;
+            const btnU = document.getElementById('txTypeUdhaarBtn');
+            const btnJ = document.getElementById('txTypeJamaBtn');
+            if (type === 'udhaar') {
+                btnU.className = "py-2.5 rounded-xl text-xs font-bold bg-brand-red text-white shadow-sm";
+                btnJ.className = "py-2.5 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-400";
+            } else {
+                btnJ.className = "py-2.5 rounded-xl text-xs font-bold bg-brand-green text-white shadow-sm";
+                btnU.className = "py-2.5 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-400";
+            }
+        }
+
+        function pressNumpad(digit) { numpadValue = numpadValue === "0" ? digit : numpadValue + digit; updateNumpadDisplay(); }
+        function clearNumpad() { numpadValue = "0"; updateNumpadDisplay(); }
+        function backspaceNumpad() { numpadValue = numpadValue.length > 1 ? numpadValue.slice(0, -1) : "0"; updateNumpadDisplay(); }
+        function updateNumpadDisplay() { document.getElementById('numpadValDisplay').textContent = `₹ ${parseInt(numpadValue).toLocaleString()}`; }
+
+        async function submitTransaction() {
+            const amt = parseInt(numpadValue);
+            if (amt <= 0) return;
+            const c = customers.find(item => item.id === activeCustId);
+            if (!c) return;
+            const itemDesc = document.getElementById('txItemDesc').value || (activeTxType === 'udhaar' ? 'Udhaar Purchase' : 'Cash Deposit');
+
+            // Backend DB Sync
+            if (BACKEND_CONFIG.isOnline && BACKEND_CONFIG.token) {
+                try {
+                    const prompt = `${c.name} ${amt} ${activeTxType} ${itemDesc}`;
+                    await fetch(`${BACKEND_CONFIG.baseUrl}/api/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${BACKEND_CONFIG.token}`
+                        },
+                        body: JSON.stringify({
+                            message: prompt,
+                            client_msg_id: `${Date.now()}`
+                        })
+                    });
+                    await syncFromBackend();
+                    closeModal('modalNumpad');
+                    showToast(`Backend DB me save ho gaya! (₹${amt.toLocaleString()}) ✅`);
+                    return;
+                } catch (e) {
+                    console.error('Backend transaction post failed:', e);
+                }
+            }
+
+            // Local fallback
+            if (activeTxType === 'udhaar') c.balance -= amt;
+            else c.balance += amt;
+            c.history.unshift({ id: Date.now(), desc: itemDesc, amount: amt, type: activeTxType, date: "Just Now" });
+            renderDashboard();
+            closeModal('modalNumpad');
+            showToast("Khata Entry saved successfully!");
+        }
+
+        function toggleVoiceRecording() {
+            isVoiceRecording = !isVoiceRecording;
+            const visualizer = document.getElementById('waveVisualizer');
+            const btn = document.getElementById('voiceMicBtn');
+            const status = document.getElementById('voiceMicStatus');
+            const timer = document.getElementById('voiceMicTimer');
+            if (isVoiceRecording) {
+                visualizer.classList.remove('hidden');
+                btn.className = "w-16 h-16 rounded-full bg-rose-500 text-white flex items-center justify-center text-2xl shadow-glow border-4 border-gray-50 dark:border-gray-900 active:scale-90 transition animate-bounce";
+                status.textContent = "Listening... Bolen 'Ramesh ₹500 udhaar'";
+                timer.textContent = "Recording active 00:03";
+            } else {
+                visualizer.classList.add('hidden');
+                btn.className = "w-16 h-16 rounded-full bg-gradient-to-tr from-brand-gold to-amber-400 text-gray-950 flex items-center justify-center text-2xl shadow-glow border-4 border-gray-50 dark:border-gray-900 active:scale-90 transition";
+                status.textContent = "Mic daba kar bolna shuru karein";
+                timer.textContent = "Tap mic to start speech recording";
+            }
+        }
+
+        function sendManualVoiceText() {
+            const input = document.getElementById('voiceTextInput');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            triggerSampleVoice(text);
+        }
+
+        async function triggerSampleVoice(promptText) {
+            if (isVoiceRecording) toggleVoiceRecording();
+            const chat = document.getElementById('voiceChatContainer');
+            const uMsg = document.createElement('div');
+            uMsg.className = "flex items-start justify-end space-x-2";
+            uMsg.innerHTML = `<div class="bg-brand-500 text-white p-3 rounded-2xl rounded-tr-none max-w-[85%] space-y-1 shadow-sm"><p class="text-xs font-medium">${promptText}</p><span class="text-[9px] text-emerald-200 block text-right">Just now</span></div>`;
+            chat.appendChild(uMsg);
+
+            if (BACKEND_CONFIG.isOnline && BACKEND_CONFIG.token) {
+                try {
+                    const res = await fetch(`${BACKEND_CONFIG.baseUrl}/api/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${BACKEND_CONFIG.token}`
+                        },
+                        body: JSON.stringify({ message: promptText, client_msg_id: `${Date.now()}` })
+                    });
+                    const data = await res.json();
+                    const reply = data.reply || "Samajh gaya! Entry save ho gayi hai.";
+                    const aiMsg = document.createElement('div');
+                    aiMsg.className = "flex items-start space-x-2.5";
+                    aiMsg.innerHTML = `<div class="w-8 h-8 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-black shrink-0">AI</div><div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl rounded-tl-none max-w-[85%] space-y-2 shadow-sm"><p class="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-line">${reply}</p></div>`;
+                    chat.appendChild(aiMsg);
+                    chat.scrollTop = chat.scrollHeight;
+                    await syncFromBackend();
+                    return;
+                } catch (e) {
+                    console.warn('[Munim Chat] backend error:', e);
+                }
+            }
+
+            setTimeout(() => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = "flex items-start space-x-2.5";
+                aiMsg.innerHTML = `<div class="w-8 h-8 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-black shrink-0">AI</div><div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl rounded-tl-none max-w-[85%] space-y-2 shadow-sm"><p class="text-xs text-gray-800 dark:text-gray-200 font-medium">Samajh gaya! Entry extract kar li. Kya save karun?</p><div class="flex space-x-2"><button onclick="confirmVoiceEntry()" class="px-3 py-1 bg-brand-500 text-white text-[10px] font-bold rounded-lg">HAAN, Save Karein</button><button class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-bold rounded-lg">Cancel</button></div></div>`;
+                chat.appendChild(aiMsg);
+                chat.scrollTop = chat.scrollHeight;
+            }, 600);
+        }
+
+        function confirmVoiceEntry() { openNumpadModalForActiveCust('udhaar'); }
+
+        function processOcrScan(e) { document.getElementById('ocrResultBox').classList.remove('hidden'); }
+
+        function commitOcrExpense() {
+            cashEntries.unshift({ id: Date.now(), desc: "Gupta Wholesalers Bill Scan", amount: 14250, type: "out", time: "Just Now" });
+            renderCashbookLogs();
+            document.getElementById('ocrResultBox').classList.add('hidden');
+            showToast("Wholesaler expense saved to Cashbook!");
+        }
+
+        function renderCashbookLogs() {
+            const container = document.getElementById('cashbookLogContainer');
+            container.innerHTML = '';
+            let inTotal = 0, outTotal = 0;
+            cashEntries.forEach(entry => {
+                if (entry.type === 'in') inTotal += entry.amount;
+                else outTotal += entry.amount;
+                const item = document.createElement('div');
+                item.className = "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3 rounded-2xl flex items-center justify-between shadow-sm";
+                item.innerHTML = `<div class="flex items-center space-x-3"><div class="w-8 h-8 rounded-xl ${entry.type === 'in' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400'} flex items-center justify-center text-xs font-bold"><i class="fa-solid ${entry.type === 'in' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i></div><div><h5 class="text-xs font-bold text-gray-900 dark:text-white">${entry.desc}</h5><span class="text-[10px] text-gray-400">${entry.time}</span></div></div><span class="text-xs font-black ${entry.type === 'in' ? 'text-brand-green' : 'text-brand-red'}">${entry.type === 'in' ? '+' : '-'}₹ ${entry.amount.toLocaleString()}</span>`;
+                container.appendChild(item);
+            });
+            document.getElementById('cashInTotal').textContent = inTotal.toLocaleString();
+            document.getElementById('cashOutTotal').textContent = outTotal.toLocaleString();
+        }
+
+        function promptAddCashEntry() {
+            const amt = prompt("Enter Cash Amount (₹):");
+            if (amt && !isNaN(amt)) {
+                cashEntries.unshift({ id: Date.now(), desc: "Cash Register Entry", amount: parseInt(amt), type: "in", time: "Just Now" });
+                renderCashbookLogs();
+                showToast("Cash entry recorded!");
+            }
+        }
+
+        // --- GALLA MILAN & CHHOOTA CASH RECONCILIATION ENGINE ---
+        function openGallaMilanModal() {
+            let loggedCashIn = 0;
+            cashEntries.forEach(e => { if (e.type === 'in') loggedCashIn += e.amount; });
+            document.getElementById('gallaCurrentLoggedCash').textContent = `₹ ${loggedCashIn.toLocaleString()}`;
+            document.getElementById('gallaPhysicalInput').value = '';
+            document.getElementById('gallaDifferenceDisplay').textContent = '₹ 0';
+            document.getElementById('gallaStatusNote').innerHTML = `💡 <strong>Munim Ji Advice:</strong> Galle ka cash likhein, agar din me koi cash sale likhni chhoot gayi thi toh farq apne-aap nikal aayega aur ek click me Cashbook me jud jayega!`;
+            document.getElementById('modalGallaMilan').classList.remove('hidden');
+        }
+
+        function calculateGallaDiff() {
+            let loggedCashIn = 0;
+            cashEntries.forEach(e => { if (e.type === 'in') loggedCashIn += e.amount; });
+            const physVal = parseInt(document.getElementById('gallaPhysicalInput').value || "0");
+            const diff = physVal - loggedCashIn;
+            const diffEl = document.getElementById('gallaDifferenceDisplay');
+            const noteEl = document.getElementById('gallaStatusNote');
+            const btnEl = document.getElementById('btnApplyGallaMilan');
+
+            if (isNaN(physVal) || physVal <= 0) {
+                diffEl.textContent = '₹ 0';
+                diffEl.className = "text-lg font-black text-gray-400 mt-0.5";
+                return;
+            }
+
+            if (diff > 0) {
+                diffEl.textContent = `+ ₹ ${diff.toLocaleString()} Extra`;
+                diffEl.className = "text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5";
+                noteEl.innerHTML = `🟢 <strong>Chhooti Hui Sale Mili:</strong> Galle me ₹${diff.toLocaleString()} extra hain jo din me likhne chhoot gaye the. Neeche click karke ise Cashbook me jod dein!`;
+                btnEl.innerHTML = `<i class="fa-solid fa-plus-circle"></i> <span>+ ₹${diff.toLocaleString()} Chhooti Sale Cashbook Me Jodein</span>`;
+            } else if (diff < 0) {
+                diffEl.textContent = `- ₹ ${Math.abs(diff).toLocaleString()} Kam`;
+                diffEl.className = "text-lg font-black text-brand-red mt-0.5";
+                noteEl.innerHTML = `🔴 <strong>Cash Kam Hai:</strong> Logged cash se ₹${Math.abs(diff).toLocaleString()} kam hain. Shayad koi dukan ka kharcha (chai/kiraya) likhna chhoot gaya tha.`;
+                btnEl.innerHTML = `<i class="fa-solid fa-minus-circle"></i> <span>- ₹${Math.abs(diff).toLocaleString()} Kharcha Cashbook Me Adjust Karein</span>`;
+            } else {
+                diffEl.textContent = `₹ 0 (Barabar)`;
+                diffEl.className = "text-lg font-black text-brand-green mt-0.5";
+                noteEl.innerHTML = `✅ <strong>Hisaab Bilkul Barabar Hai!</strong> Galle me rakha cash aur app me likha cash bilkul match ho raha hai.`;
+                btnEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Hisaab Sahi Hai (Close)</span>`;
+            }
+        }
+
+        function commitGallaAdjustment() {
+            let loggedCashIn = 0;
+            cashEntries.forEach(e => { if (e.type === 'in') loggedCashIn += e.amount; });
+            const physVal = parseInt(document.getElementById('gallaPhysicalInput').value || "0");
+            const diff = physVal - loggedCashIn;
+
+            if (!physVal || isNaN(physVal)) {
+                closeModal('modalGallaMilan');
+                return;
+            }
+
+            if (diff > 0) {
+                cashEntries.unshift({
+                    id: Date.now(),
+                    desc: "Chhoota Cash (Galla Milan Auto-Adjustment)",
+                    amount: diff,
+                    type: "in",
+                    time: "Just Now"
+                });
+                showToast(`+ ₹${diff.toLocaleString()} chhooti cash sale Cashbook me jud gayi!`);
+                speakHindiVoice(`Seth Ji, ${diff} rupaye ki chhooti hui bikri galle ke hisaab se Cashbook me jod di gayi hai.`);
+            } else if (diff < 0) {
+                cashEntries.unshift({
+                    id: Date.now(),
+                    desc: "Chhoota Kharcha / Galla Adjustment",
+                    amount: Math.abs(diff),
+                    type: "out",
+                    time: "Just Now"
+                });
+                showToast(`- ₹${Math.abs(diff).toLocaleString()} kharcha Cashbook me darj ho gaya!`);
+                speakHindiVoice(`Seth Ji, ${Math.abs(diff)} rupaye ka kharcha Cashbook me adjust kar diya gaya hai.`);
+            } else {
+                showToast("Galle ka hisaab bilkul barabar hai!");
+            }
+
+            renderCashbookLogs();
+            renderDashboard();
+            closeModal('modalGallaMilan');
+        }
+
+        function quickAddCashEntry(desc, amount) {
+            cashEntries.unshift({
+                id: Date.now(),
+                desc: desc,
+                amount: amount,
+                type: "in",
+                time: "Just Now"
+            });
+            renderCashbookLogs();
+            renderDashboard();
+            showToast(`${desc} (+₹${amount.toLocaleString()}) saved!`);
+            speakHindiVoice(`${desc} darj ho gaya hai.`);
+        }
+
+        function promptMissedCashEntry() {
+            const amt = prompt("Chhoote huye samaan ka Cash Amount (₹) likhein:");
+            if (amt && !isNaN(amt) && parseInt(amt) > 0) {
+                const itemDesc = prompt("Samaan ka naam (Optional, e.g. Atta/Tel/Rashan):", "Kirana Samaan") || "Kirana Samaan";
+                cashEntries.unshift({
+                    id: Date.now(),
+                    desc: `Chhoota Cash Samaan (${itemDesc})`,
+                    amount: parseInt(amt),
+                    type: "in",
+                    time: "Just Now"
+                });
+                renderCashbookLogs();
+                renderDashboard();
+                showToast(`Chhoota Cash Sale (+₹${parseInt(amt).toLocaleString()}) jud gaya!`);
+                speakHindiVoice(`Seth Ji, ${amt} rupaye ka chhoota cash samaan Cashbook me jud gaya hai.`);
+            }
+        }
+
+        function openWhatsAppModal(custId) {
+            activeCustId = custId;
+            const c = customers.find(item => item.id === custId);
+            if (!c) return;
+            document.getElementById('whatsappScriptBody').textContent = `"Namaste ${c.name} Ji 🙏, Sharma Kirana Store par aapka ₹${Math.abs(c.balance).toLocaleString()} ka udhaar baaki hai. Kripya UPI QR code par payment karein. Dhanyawad!"`;
+            document.getElementById('modalWhatsApp').classList.remove('hidden');
+        }
+
+        function speakWhatsAppAudio() {
+            if ('speechSynthesis' in window) {
+                const text = document.getElementById('whatsappScriptBody').textContent;
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.lang = 'hi-IN';
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        function sendWhatsAppMessage() {
+            const text = encodeURIComponent(document.getElementById('whatsappScriptBody').textContent);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+
+        function openAddCustModal() {
+            const nameInput = document.getElementById('addCustName');
+            const phoneInput = document.getElementById('addCustPhone');
+            const amtInput = document.getElementById('addCustInitAmount');
+            const typeSelect = document.getElementById('addCustInitType');
+
+            if (nameInput) nameInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+            if (amtInput) amtInput.value = '';
+            if (typeSelect) typeSelect.value = 'udhaar';
+
+            document.getElementById('modalAddCust').classList.remove('hidden');
+            setTimeout(() => { if (nameInput) nameInput.focus(); }, 150);
+        }
+
+        async function handleNewCustSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('addCustName').value.trim();
+            const phone = document.getElementById('addCustPhone').value.trim();
+            const initAmt = parseInt(document.getElementById('addCustInitAmount')?.value || "0");
+            const initType = document.getElementById('addCustInitType')?.value || "udhaar";
+
+            // If backend connected, call FastAPI customers endpoint
+            if (BACKEND_CONFIG.isOnline && BACKEND_CONFIG.token) {
+                try {
+                    await fetch(`${BACKEND_CONFIG.baseUrl}/api/customers`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${BACKEND_CONFIG.token}`
+                        },
+                        body: JSON.stringify({ name: name, phone: phone || '' })
+                    });
+
+                    // If initial amount given, record transaction
+                    if (initAmt > 0) {
+                        await fetch(`${BACKEND_CONFIG.baseUrl}/api/chat`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${BACKEND_CONFIG.token}`
+                            },
+                            body: JSON.stringify({
+                                message: `${name} ${initAmt} ${initType} Pehla hisaab`,
+                                client_msg_id: `${Date.now()}`
+                            })
+                        });
+                    }
+
+                    await syncFromBackend();
+                    closeModal('modalAddCust');
+                    document.getElementById('addCustName').value = '';
+                    document.getElementById('addCustPhone').value = '';
+                    if (document.getElementById('addCustInitAmount')) document.getElementById('addCustInitAmount').value = '';
+                    showToast(`Grahak "${name}" Backend DB me jud gaya! ✅`);
+                    return;
+                } catch (err) {
+                    console.error('[Munim Customer Add] backend error:', err);
+                }
+            }
+
+            // Local fallback
+            let history = [];
+            let balance = 0;
+            if (initAmt > 0) {
+                balance = initType === 'udhaar' ? -initAmt : initAmt;
+                history.push({
+                    id: Date.now() + 1,
+                    desc: initType === 'udhaar' ? "Pehla Udhaar" : "Pehla Jama",
+                    amount: initAmt,
+                    type: initType,
+                    date: "Just Now"
+                });
+            }
+
+            const newCust = {
+                id: Date.now(),
+                name,
+                phone: phone || "Mobile Not Added",
+                type: "customer",
+                balance: balance,
+                lastActive: "Just Now",
+                history: history
+            };
+
+            customers.unshift(newCust);
+            renderDashboard();
+            closeModal('modalAddCust');
+
+            // Reset inputs
+            document.getElementById('addCustName').value = '';
+            document.getElementById('addCustPhone').value = '';
+            if (document.getElementById('addCustInitAmount')) document.getElementById('addCustInitAmount').value = '';
+
+            showToast(`Grahak "${name}" jud gaya! Hisaab samne khula hai.`);
+            openLedgerDrawer(newCust.id);
+        }
+
+        function openTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active-panel'));
+            const targetPanel = document.getElementById(`panel-${tabId}`);
+            if (targetPanel) targetPanel.classList.add('active-panel');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn flex-1 flex flex-col items-center py-1 text-gray-400");
+            const currentNav = document.getElementById(`nav-${tabId}`);
+            if (currentNav) currentNav.className = "nav-btn flex-1 flex flex-col items-center py-1 text-brand-500 dark:text-brand-gold";
+
+            // WhatsApp-style Back to Home button in header
+            const backBtn = document.getElementById('headerHomeBackBtn');
+            if (backBtn) {
+                if (tabId === 'home') {
+                    backBtn.classList.add('hidden');
+                    backBtn.classList.remove('flex');
+                } else {
+                    backBtn.classList.remove('hidden');
+                    backBtn.classList.add('flex');
+                }
+            }
+        }
+
+        function cycleLanguage() {
+            if (currentLang === 'Hinglish') currentLang = 'Hindi';
+            else if (currentLang === 'Hindi') currentLang = 'English';
+            else currentLang = 'Hinglish';
+            document.getElementById('langPill').textContent = currentLang;
+            document.getElementById('settingsLangSub').textContent = `Current: ${currentLang}`;
+            const translations = i18nData[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[key]) el.textContent = translations[key];
+            });
+        }
+
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.classList.toggle('dark', isDarkMode);
+            document.getElementById('themeStatusLabel').textContent = isDarkMode ? "ON" : "Off";
+        }
+
+        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+        function openQrModal() { document.getElementById('modalQr').classList.remove('hidden'); }
+        function showSyncToast() { openBackendSyncModal(); }
+
+        function showToast(msg) {
+            const toast = document.getElementById('appToast');
+            document.getElementById('toastMessage').textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2500);
+        }
+
+        function downloadExcelReport() {
+            let csvContent = "data:text/csv;charset=utf-8,Customer Name,Phone,Balance (INR)\n";
+            customers.forEach(c => { csvContent += `${c.name},${c.phone},${c.balance}\n`; });
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", "Sharma_Kirana_Khata_Report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Excel Statement Downloaded!");
+        }
+
+        function downloadPdfReport() { showToast("PDF Summary Report generated & saved!"); }
+
+        function toggleShopNamePrompt() {
+            const newName = prompt("Dukaan Ka Naam Badlein:", document.getElementById('headerShopTitle').textContent);
+            if (newName) { document.getElementById('headerShopTitle').textContent = newName; showToast("Shop name updated!"); }
+        }
+
+        // --- MUNIM JI CONVERSATIONAL AI ASSISTANT & LIVE ACCOUNTING ENGINE ---
+        let aiSpeechRecognition = null;
+        let isAiListening = false;
+
+        function initAiSpeechRecognition() {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRec && !aiSpeechRecognition) {
+                aiSpeechRecognition = new SpeechRec();
+                aiSpeechRecognition.continuous = false;
+                aiSpeechRecognition.lang = 'hi-IN';
+                aiSpeechRecognition.interimResults = false;
+
+                aiSpeechRecognition.onstart = () => {
+                    isAiListening = true;
+                    updateAiListeningUI(true);
+                };
+
+                aiSpeechRecognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    updateAiListeningUI(false);
+                    if (transcript) {
+                        handleMunimPrompt(transcript);
+                    }
+                };
+
+                aiSpeechRecognition.onerror = (e) => {
+                    console.log('AI Speech error:', e);
+                    updateAiListeningUI(false);
+                };
+
+                aiSpeechRecognition.onend = () => {
+                    updateAiListeningUI(false);
+                };
+            }
+        }
+
+        function refreshAiAccountStats() {
+            const totalDue = customers.filter(c => c.balance < 0).reduce((sum, c) => sum + Math.abs(c.balance), 0);
+            const totalAdv = customers.filter(c => c.balance > 0).reduce((sum, c) => sum + c.balance, 0);
+            
+            const dueEl = document.getElementById('aiSummaryDue');
+            const advEl = document.getElementById('aiSummaryAdvance');
+            const countEl = document.getElementById('aiSummaryCount');
+
+            if (dueEl) dueEl.textContent = `₹ ${totalDue.toLocaleString()}`;
+            if (advEl) advEl.textContent = `₹ ${totalAdv.toLocaleString()}`;
+            if (countEl) countEl.textContent = `${customers.length} Grahak`;
+        }
+
+        function openAiAssistantModal() {
+            refreshAiAccountStats();
+            document.getElementById('modalAiAssistant').classList.remove('hidden');
+            const chatInput = document.getElementById('munimChatInput');
+            if (chatInput) {
+                chatInput.focus();
+            }
+            scrollMunimChatToBottom();
+            initAiSpeechRecognition();
+        }
+
+        function closeAiAssistantModal() {
+            stopAiListening();
+            document.getElementById('modalAiAssistant').classList.add('hidden');
+        }
+
+        function toggleAiVoiceListening() {
+            if (isAiListening) {
+                stopAiListening();
+            } else {
+                startAiListening();
+            }
+        }
+
+        function startAiListening() {
+            initAiSpeechRecognition();
+            isAiListening = true;
+            updateAiListeningUI(true);
+            if (aiSpeechRecognition) {
+                try { aiSpeechRecognition.start(); } catch(e) {}
+            }
+        }
+
+        function stopAiListening() {
+            isAiListening = false;
+            updateAiListeningUI(false);
+            if (aiSpeechRecognition) {
+                try { aiSpeechRecognition.stop(); } catch(e) {}
+            }
+        }
+
+        function updateAiListeningUI(listening) {
+            const bar = document.getElementById('aiVoiceListeningBar');
+            const micBtn = document.getElementById('munimInputMicBtn');
+            const micIcon = document.getElementById('munimInputMicIcon');
+            const statusTxt = document.getElementById('aiListeningStatusText');
+
+            if (listening) {
+                if (bar) bar.classList.remove('hidden');
+                if (micBtn) micBtn.classList.add('ring-4', 'ring-brand-gold', 'animate-pulse');
+                if (micIcon) micIcon.className = "fa-solid fa-microphone-lines text-red-600";
+                if (statusTxt) statusTxt.textContent = "Seth Ji, main sun raha hoon... Boliye! 🎙️";
+            } else {
+                if (bar) bar.classList.add('hidden');
+                if (micBtn) micBtn.classList.remove('ring-4', 'ring-brand-gold', 'animate-pulse');
+                if (micIcon) micIcon.className = "fa-solid fa-microphone text-gray-950";
+            }
+        }
+
+        function scrollMunimChatToBottom() {
+            const stream = document.getElementById('munimChatStream');
+            if (stream) {
+                setTimeout(() => {
+                    stream.scrollTop = stream.scrollHeight;
+                }, 50);
+            }
+        }
+
+        function submitMunimChat() {
+            const input = document.getElementById('munimChatInput');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            handleMunimPrompt(text);
+        }
+
+        function clearMunimChat() {
+            const stream = document.getElementById('munimChatStream');
+            if (!stream) return;
+            stream.innerHTML = `
+                <div class="flex items-start space-x-2.5">
+                    <div class="w-8 h-8 rounded-full bg-brand-gold text-gray-950 flex items-center justify-center text-xs font-black shrink-0 shadow-sm">
+                        👳
+                    </div>
+                    <div class="bg-gray-800 border border-gray-700/80 p-3 rounded-2xl rounded-tl-none max-w-[85%] space-y-1 shadow-sm">
+                        <div class="flex items-center justify-between text-[10px] text-brand-gold font-bold">
+                            <span>Munim Ji</span>
+                            <span class="text-gray-400">Live</span>
+                        </div>
+                        <p class="text-xs text-gray-100 font-medium leading-relaxed">
+                            Namaste Seth Ji! 🙏 Hukum kijiye. Main aapki dukan ka poora hisaab jaanta hoon.
+                            <br><br>
+                            Aap mujhse kuch bhi bol kar pooch sakte hain ya hisaab likhwa sakte hain!
+                        </p>
+                    </div>
+                </div>
+            `;
+            showToast("Chat saaf kar di gayi hai!");
+            refreshAiAccountStats();
+        }
+
+        function appendUserMessage(text) {
+            const stream = document.getElementById('munimChatStream');
+            if (!stream) return;
+            const msgEl = document.createElement('div');
+            msgEl.className = "flex items-start justify-end space-x-2.5";
+            msgEl.innerHTML = `
+                <div class="bg-gradient-to-r from-emerald-800 to-brand-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm border border-emerald-500/30 space-y-1">
+                    <div class="flex items-center justify-between text-[10px] text-emerald-200 font-bold">
+                        <span>Seth Ji (Aap)</span>
+                        <span class="text-[9px] text-emerald-100/70">Abhi</span>
+                    </div>
+                    <p class="text-xs font-semibold leading-relaxed">${escapeHtml(text)}</p>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-black shrink-0 shadow-sm border border-white/20">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+            `;
+            stream.appendChild(msgEl);
+            scrollMunimChatToBottom();
+        }
+
+        function appendMunimMessage(htmlContent) {
+            const stream = document.getElementById('munimChatStream');
+            if (!stream) return;
+            const msgEl = document.createElement('div');
+            msgEl.className = "flex items-start space-x-2.5";
+            msgEl.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-gold to-amber-400 text-gray-950 flex items-center justify-center text-xs font-black shrink-0 shadow-sm border border-brand-gold/40">
+                    👳
+                </div>
+                <div class="bg-gray-800 border border-gray-700 p-3 rounded-2xl rounded-tl-none max-w-[88%] space-y-2 shadow-md">
+                    <div class="flex items-center justify-between text-[10px] text-brand-gold font-bold">
+                        <span>Munim Ji AI</span>
+                        <span class="text-[9px] text-emerald-400 font-normal">Accountant</span>
+                    </div>
+                    ${htmlContent}
+                </div>
+            `;
+            stream.appendChild(msgEl);
+            scrollMunimChatToBottom();
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function handleMunimPrompt(text) {
+            stopAiListening();
+            appendUserMessage(text);
+
+            // Munim thinking animation
+            const stream = document.getElementById('munimChatStream');
+            const thinkingId = 'thinking_' + Date.now();
+            if (stream) {
+                const thinkEl = document.createElement('div');
+                thinkEl.id = thinkingId;
+                thinkEl.className = "flex items-center space-x-2 text-brand-gold text-[11px] font-bold py-1 px-3";
+                thinkEl.innerHTML = `
+                    <div class="w-2 h-2 rounded-full bg-brand-gold animate-bounce"></div>
+                    <div class="w-2 h-2 rounded-full bg-brand-gold animate-bounce" style="animation-delay: 0.15s"></div>
+                    <div class="w-2 h-2 rounded-full bg-brand-gold animate-bounce" style="animation-delay: 0.3s"></div>
+                    <span class="text-gray-300 ml-1">Munim Ji bahi-khata dekh rahe hain...</span>
+                `;
+                stream.appendChild(thinkEl);
+                scrollMunimChatToBottom();
+            }
+
+            setTimeout(() => {
+                const thinkEl = document.getElementById(thinkingId);
+                if (thinkEl) thinkEl.remove();
+                processMunimAiQuery(text);
+            }, 500);
+        }
+
+        // Core Intelligence & Action Processing
+        function processMunimAiQuery(text) {
+            const raw = text.toLowerCase().trim();
+            refreshAiAccountStats();
+
+            // Extract customer match if any
+            let targetCust = null;
+            for (let c of customers) {
+                const cParts = c.name.toLowerCase().split(/\s+/);
+                if (cParts.some(p => p.length >= 3 && raw.includes(p)) || raw.includes(c.name.toLowerCase())) {
+                    targetCust = c;
+                    break;
+                }
+            }
+
+            // Extract amount
+            const numMatches = text.match(/\d[\d,]*/g);
+            let amount = 0;
+            if (numMatches && numMatches.length > 0) {
+                amount = parseInt(numMatches[0].replace(/,/g, ''));
+            }
+
+            // Detect Action Types
+            const isUdhaarAction = (raw.includes('udhaar') || raw.includes('diya') || raw.includes('de diya') || raw.includes('de do') || raw.includes('khate me')) && !raw.includes('kitna') && !raw.includes('kiska') && !raw.includes('baki');
+            const isJamaAction = (raw.includes('jama') || raw.includes('payment') || raw.includes('chuka') || raw.includes('aaye') || raw.includes('mila') || raw.includes('diye') || raw.includes('pay kiya')) && !raw.includes('kitna') && !raw.includes('kiska');
+            const isMissedCashAction = (raw.includes('chhoot') || raw.includes('bhool') || raw.includes('chhoota') || raw.includes('chhooti') || raw.includes('nagad bikri') || (raw.includes('cash') && (raw.includes('bikri') || raw.includes('sale') || raw.includes('samaan')))) && !raw.includes('kitna');
+            const isGallaMilanAction = raw.includes('galla') || raw.includes('cash tally') || raw.includes('cash match') || raw.includes('galle me');
+            const isHisaabEnquiry = raw.includes('hisaab') || raw.includes('kitna') || raw.includes('baaki') || raw.includes('baki') || raw.includes('balance') || raw.includes('kitne paise');
+            const isBikriEnquiry = raw.includes('bikri') || raw.includes('sales') || raw.includes('kamai') || raw.includes('aaj ka') || raw.includes('collection');
+            const isTopDuesEnquiry = raw.includes('sabse zyada') || raw.includes('top') || raw.includes('bada udhaar') || raw.includes('kiska baaki') || raw.includes('vasooli');
+            const isReminderAction = raw.includes('reminder') || raw.includes('whatsapp') || raw.includes('message');
+            const isAddCustAction = raw.includes('naya grahak') || raw.includes('new customer') || raw.includes('add grahak') || raw.includes('jodo');
+
+            // --- CASE 1: UDHAAR COMMAND (e.g. "Ramesh ko ₹500 ka udhaar likho") ---
+            if (isUdhaarAction && amount > 0) {
+                if (!targetCust) targetCust = customers[0]; // fallback to first customer if not specified
+
+                let itemDesc = "Kirana Samaan";
+                if (raw.includes('atta')) itemDesc = "2kg Aashirvaad Atta";
+                else if (raw.includes('tel') || raw.includes('oil')) itemDesc = "1L Fortune Mustard Oil";
+                else if (raw.includes('doodh') || raw.includes('milk')) itemDesc = "Amul Milk";
+                else if (raw.includes('cheeni') || raw.includes('sugar')) itemDesc = "Sugar Stock";
+                else if (raw.includes('chai') || raw.includes('tea')) itemDesc = "Taj Mahal Tea";
+                else if (raw.includes('rashan')) itemDesc = "Rashan Samaan";
+
+                // Action execution:
+                targetCust.balance -= amount;
+                targetCust.history.unshift({
+                    id: Date.now(),
+                    desc: itemDesc,
+                    amount: amount,
+                    type: "udhaar",
+                    date: "Just Now"
+                });
+                renderDashboard();
+                refreshAiAccountStats();
+
+                const responseHtml = `
+                    <p class="text-xs text-gray-100 leading-relaxed">
+                        Hukum sar aankhon par Seth Ji! 🙏 <strong>${targetCust.name}</strong> ke khate mein <span class="text-brand-red font-bold">₹${amount.toLocaleString()}</span> ka udhaar likh diya hai.
+                    </p>
+                    <div class="bg-gray-900/90 border border-brand-red/40 p-2.5 rounded-xl space-y-1.5 mt-1">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-gray-400">Grahak:</span>
+                            <span class="font-bold text-white">${targetCust.name}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-gray-400">Samaan:</span>
+                            <span class="text-gray-300">${itemDesc}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px] border-t border-gray-800 pt-1">
+                            <span class="text-gray-400">Naya Kul Baki:</span>
+                            <span class="font-extrabold ${targetCust.balance < 0 ? 'text-brand-red' : 'text-brand-green'}">
+                                ₹ ${Math.abs(targetCust.balance).toLocaleString()} ${targetCust.balance < 0 ? 'Due (Baaki)' : 'Advance'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 pt-1">
+                        <button onclick="openLedgerDrawer(${targetCust.id})" class="flex-1 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 shadow-sm">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span>Hisaab Dekhein</span>
+                        </button>
+                        <button onclick="openWhatsAppModal(${targetCust.id})" class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-bold flex items-center space-x-1">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            <span>Reminder</span>
+                        </button>
+                    </div>
+                `;
+                appendMunimMessage(responseHtml);
+                showToast(`₹${amount} udhaar likh diya!`);
+                speakHindiVoice(`Seth Ji, ${targetCust.name} ke khate mein ${amount} rupaye udhaar darj kar diye gaye hain.`);
+                return;
+            }
+
+            // --- CASE 2: JAMA / PAYMENT COMMAND (e.g. "Suresh ne 1000 jama kiye") ---
+            if (isJamaAction && amount > 0) {
+                if (!targetCust) targetCust = customers[1] || customers[0];
+
+                // Action execution:
+                targetCust.balance += amount;
+                targetCust.history.unshift({
+                    id: Date.now(),
+                    desc: "Jama Mila (Cash / Online Payment)",
+                    amount: amount,
+                    type: "jama",
+                    date: "Just Now"
+                });
+                renderDashboard();
+                refreshAiAccountStats();
+
+                const responseHtml = `
+                    <p class="text-xs text-gray-100 leading-relaxed">
+                        Shubh kaarya Seth Ji! 🟢 <strong>${targetCust.name}</strong> se <span class="text-emerald-400 font-bold">₹${amount.toLocaleString()}</span> jama prapt ho gaye hain aur khata update kar diya hai.
+                    </p>
+                    <div class="bg-gray-900/90 border border-emerald-500/40 p-2.5 rounded-xl space-y-1.5 mt-1">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-gray-400">Grahak:</span>
+                            <span class="font-bold text-white">${targetCust.name}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-gray-400">Rakam Jama:</span>
+                            <span class="font-extrabold text-emerald-400">+ ₹ ${amount.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px] border-t border-gray-800 pt-1">
+                            <span class="text-gray-400">Naya Net Balance:</span>
+                            <span class="font-extrabold ${targetCust.balance < 0 ? 'text-brand-red' : 'text-brand-green'}">
+                                ₹ ${Math.abs(targetCust.balance).toLocaleString()} ${targetCust.balance < 0 ? 'Baaki' : 'Advance'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="pt-1">
+                        <button onclick="openLedgerDrawer(${targetCust.id})" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 shadow-sm">
+                            <i class="fa-solid fa-receipt"></i>
+                            <span>Pura Ledger Dekhein</span>
+                        </button>
+                    </div>
+                `;
+                appendMunimMessage(responseHtml);
+                showToast(`₹${amount} jama darj hua!`);
+                speakHindiVoice(`Seth Ji, ${targetCust.name} se ${amount} rupaye jama darj ho gaye hain.`);
+                return;
+            }
+
+            // --- CASE 2.5: MISSED CASH SALE OR GALLA MILAN COMMAND ---
+            if (isMissedCashAction && amount > 0) {
+                let itemDesc = "Kirana Samaan";
+                if (raw.includes('atta')) itemDesc = "Atta";
+                else if (raw.includes('tel') || raw.includes('oil')) itemDesc = "Tel";
+                else if (raw.includes('doodh')) itemDesc = "Doodh";
+                else if (raw.includes('rashan')) itemDesc = "Rashan Samaan";
+                else if (raw.includes('biscuit') || raw.includes('parle')) itemDesc = "Biscuit";
+
+                cashEntries.unshift({
+                    id: Date.now(),
+                    desc: `Chhoota Cash Samaan (${itemDesc})`,
+                    amount: amount,
+                    type: "in",
+                    time: "Just Now"
+                });
+                renderCashbookLogs();
+                renderDashboard();
+
+                let totalCashIn = 0;
+                cashEntries.forEach(e => { if (e.type === 'in') totalCashIn += e.amount; });
+
+                const responseHtml = `
+                    <p class="text-xs text-gray-100 leading-relaxed">
+                        Bilkul chinta mat kijiye Seth Ji! 🙏 <span class="text-emerald-400 font-bold">₹${amount.toLocaleString()}</span> ka chhoota hua cash samaan Cashbook aur galle me darj kar diya hai.
+                    </p>
+                    <div class="bg-gray-900/90 border border-emerald-500/40 p-2.5 rounded-xl space-y-1.5 mt-1">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-gray-400">Entry:</span>
+                            <span class="font-bold text-white">Chhoota Cash Samaan (${itemDesc})</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-gray-400">Rakam:</span>
+                            <span class="font-extrabold text-emerald-400">+ ₹ ${amount.toLocaleString()} (Cash IN)</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px] border-t border-gray-800 pt-1">
+                            <span class="text-gray-400">Aaj Ka Kul Cash IN:</span>
+                            <span class="font-extrabold text-brand-gold">₹ ${totalCashIn.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="pt-1">
+                        <button onclick="openTab('ocr')" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 shadow-sm">
+                            <i class="fa-solid fa-book"></i>
+                            <span>Cashbook Me Dekhein</span>
+                        </button>
+                    </div>
+                `;
+                appendMunimMessage(responseHtml);
+                showToast(`Chhoota Cash +₹${amount.toLocaleString()} jud gaya!`);
+                speakHindiVoice(`Seth Ji, ${amount} rupaye ka chhoota cash samaan Cashbook me jod diya gaya hai.`);
+                return;
+            }
+
+            if (isGallaMilanAction) {
+                if (amount > 0) {
+                    let loggedCashIn = 0;
+                    cashEntries.forEach(e => { if (e.type === 'in') loggedCashIn += e.amount; });
+                    const diff = amount - loggedCashIn;
+
+                    if (diff > 0) {
+                        cashEntries.unshift({
+                            id: Date.now(),
+                            desc: "Chhoota Cash (Galla Milan Auto-Adjustment)",
+                            amount: diff,
+                            type: "in",
+                            time: "Just Now"
+                        });
+                        renderCashbookLogs();
+                        renderDashboard();
+
+                        const responseHtml = `
+                            <p class="text-xs text-gray-100 leading-relaxed">
+                                Seth Ji, aapke physical galle me <strong>₹${amount.toLocaleString()}</strong> cash hai aur app me <strong>₹${loggedCashIn.toLocaleString()}</strong> likha tha.
+                                <br><br>
+                                Maine farq ke <span class="text-emerald-400 font-bold">+₹${diff.toLocaleString()} (chhooti hui cash bikri)</span> ko Cashbook me auto-adjust karke jod diya hai!
+                            </p>
+                            <div class="pt-1">
+                                <button onclick="openTab('ocr')" class="w-full py-1.5 bg-brand-gold hover:bg-amber-400 text-gray-950 rounded-xl text-[10px] font-black flex items-center justify-center space-x-1 shadow-sm">
+                                    <i class="fa-solid fa-scale-balanced"></i>
+                                    <span>Cashbook Me Tally Dekhein</span>
+                                </button>
+                            </div>
+                        `;
+                        appendMunimMessage(responseHtml);
+                        showToast(`Galla Milan: +₹${diff.toLocaleString()} auto-adjusted!`);
+                        speakHindiVoice(`Seth Ji, farq ke ${diff} rupaye chhooti cash bikri ke roop me Cashbook me jod diye gaye hain.`);
+                        return;
+                    } else if (diff < 0) {
+                        cashEntries.unshift({
+                            id: Date.now(),
+                            desc: "Chhoota Kharcha / Galla Adjustment",
+                            amount: Math.abs(diff),
+                            type: "out",
+                            time: "Just Now"
+                        });
+                        renderCashbookLogs();
+                        renderDashboard();
+
+                        const responseHtml = `
+                            <p class="text-xs text-gray-100 leading-relaxed">
+                                Seth Ji, galle me ₹${amount.toLocaleString()} hain aur app me ₹${loggedCashIn.toLocaleString()} likha tha.
+                                Farq ke <span class="text-brand-red font-bold">-₹${Math.abs(diff).toLocaleString()}</span> ko kharche me adjust kar diya gaya hai.
+                            </p>
+                        `;
+                        appendMunimMessage(responseHtml);
+                        speakHindiVoice(`Seth Ji, ${Math.abs(diff)} rupaye kharche me adjust kar diye hain.`);
+                        return;
+                    } else {
+                        const responseHtml = `
+                            <p class="text-xs text-gray-100 leading-relaxed">
+                                Shabaash Seth Ji! 🌟 Galle ka cash aur app ka hisaab bilkul barabar (₹${amount.toLocaleString()}) hai. Koi farq nahi hai!
+                            </p>
+                        `;
+                        appendMunimMessage(responseHtml);
+                        speakHindiVoice("Seth Ji, galle ka hisaab bilkul barabar hai.");
+                        return;
+                    }
+                } else {
+                    openGallaMilanModal();
+                    const responseHtml = `
+                        <p class="text-xs text-gray-100 leading-relaxed">
+                            Ji Seth Ji! Maine <strong>Galla Milan (Cash Tally)</strong> window open kar di hai. Apne physical galle ke note gin kar likhein, farq turant auto-adjust ho jayega!
+                        </p>
+                    `;
+                    appendMunimMessage(responseHtml);
+                    speakHindiVoice("Ji Seth Ji, galla milan khol diya hai.");
+                    return;
+                }
+            }
+
+            // --- CASE 3: CUSTOMER BALANCE ENQUIRY (e.g. "Ramesh ka hisaab?") ---
+            if (isHisaabEnquiry && targetCust) {
+                const bal = targetCust.balance;
+                let statusText = bal < 0 
+                    ? `<span class="text-brand-red font-bold">₹${Math.abs(bal).toLocaleString()} baaki (Udhaar)</span> lene hain.` 
+                    : bal > 0 
+                        ? `<span class="text-brand-gold font-bold">₹${bal.toLocaleString()} Advance</span> jama hain.` 
+                        : `<span class="text-emerald-400 font-bold">₹0 (Poora Hisaab Nil/Barabar)</span> hai.`;
+
+                const recentHistoryHtml = targetCust.history.slice(0, 2).map(h => `
+                    <div class="flex justify-between text-[10px] text-gray-300">
+                        <span>${h.desc}</span>
+                        <span class="${h.type === 'udhaar' ? 'text-brand-red' : 'text-emerald-400'} font-bold">
+                            ${h.type === 'udhaar' ? '-' : '+'}₹${h.amount.toLocaleString()}
+                        </span>
+                    </div>
+                `).join('');
+
+                const responseHtml = `
+                    <p class="text-xs text-gray-100 leading-relaxed">
+                        Seth Ji, <strong>${targetCust.name}</strong> ka bahi-khata yeh raha:
+                        <br>
+                        Aapko inse kul ${statusText}
+                    </p>
+                    <div class="bg-gray-900/90 border border-white/10 p-2.5 rounded-xl space-y-1.5 mt-1">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-gray-400">Mobile:</span>
+                            <span class="text-gray-200 font-mono text-[10px]">${targetCust.phone}</span>
+                        </div>
+                        <div class="border-t border-gray-800 pt-1 space-y-1">
+                            <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold">Haal ki entries:</span>
+                            ${recentHistoryHtml || '<div class="text-[10px] text-gray-400">Koi entry nahi hai.</div>'}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5 pt-1">
+                        <button onclick="openLedgerDrawer(${targetCust.id})" class="py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 shadow-sm">
+                            <i class="fa-solid fa-book"></i>
+                            <span>Hisaab Dekhein</span>
+                        </button>
+                        <button onclick="openWhatsAppModal(${targetCust.id})" class="py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 shadow-sm">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            <span>Reminder Bhejo</span>
+                        </button>
+                    </div>
+                `;
+                appendMunimMessage(responseHtml);
+                speakHindiVoice(`Seth Ji, ${targetCust.name} par kul ${Math.abs(bal)} rupaye ${bal < 0 ? 'baaki' : 'jama'} hain.`);
+                return;
+            }
+
+            // --- CASE 4: WHATSAPP REMINDER COMMAND (e.g. "Ramesh ko reminder bhejo") ---
+            if (isReminderAction) {
+                if (!targetCust) targetCust = customers[0];
+                const responseHtml = `
+                    <p class="text-xs text-gray-100 leading-relaxed">
+                        Ji Seth Ji! Maine <strong>${targetCust.name}</strong> ke liye ₹${Math.abs(targetCust.balance).toLocaleString()} ka taaza reminder script taiyar kar diya hai.
+                    </p>
+                    <div class="pt-1">
+                        <button onclick="openWhatsAppModal(${targetCust.id})" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 shadow-md">
+                            <i class="fa-brands fa-whatsapp text-sm"></i>
+                            <span>WhatsApp Message Kholein & Bhejein</span>
+                        </button>
+                    </div>
+                `;
+                appendMunimMessage(responseHtml);
+                speakHindiVoice(`Seth Ji, ${targetCust.name} ka payment reminder khol diya hai.`);
+                return;
+            }
+
+            // --- CASE 5: TOTAL BIKRI & CASHBOOK REPORT ---
+            if (isBikriEnquiry) {
+                const totalDue = customers.filter(c => c.balance < 0).reduce((sum, c) => sum + Math.abs(c.balance), 0);
+                const responseHtml = `
+                    <p class="text-xs text-gray-100 leading-relaxed">
+                        Seth Ji, dukan ki aaj ki khata sthiti yeh hai:
+                    </p>
+                    <div class="bg-gray-900/90 border border-white/10 p-3 rounded-2xl space-y-2 mt-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-400">Aaj Ki Total Bikri:</span>
+                            <span class="font-extrabold text-brand-gold text-sm">₹ 14,250</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-400">Cash In Hand (Galla):</span>
+                            <span class="font-extrabold text-emerald-400">₹ 8,420</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-400">Market Udhaar:</span>
+                            <span class="font-extrabold text-brand-red">₹ ${totalDue.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="pt-1">
+                        <button onclick="openTab('reports')" class="w-full py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 shadow-sm">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Puri Business Report Dekhein</span>
+                        </button>
+                    </div>
+                `;
+                appendMunimMessage(responseHtml);
+                speakHindiVoice("Seth Ji, aaj ki total bikri 14 hazar 250 rupaye hui hai.");
+                return;
+            }
+
+            // --- CASE 6: TOP DUES / SABSE BADA UDHAAR ---
+            if (isTopDuesEnquiry) {
+                const dueCustomers = [...customers].filter(c => c.balance < 0).sort((a,b) => a.balance - b.balance);
+                const listHtml = dueCustomers.slice(0, 3).map(c => `
+                    <div class="flex justify-between items-center p-1.5 bg-gray-800/80 rounded-xl border border-white/5 text-[11px]">
+                        <div>
+                            <span class="font-bold text-white">${c.name}</span>
+                            <span class="text-[9px] text-gray-400 block">${c.phone}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-black text-brand-red">₹${Math.abs(c.balance).toLocaleString()}</span>
+                            <button onclick="openWhatsAppModal(${c.id})" class="p-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-[9px] px-1.5 font-bold">
+                                💬
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                const responseHtml = `
+                    <p class="text-xs text-gray-100 leading-relaxed">
+                        Seth Ji, market mein sabse bada udhaar in grahako par baaki hai:
+                    </p>
+                    <div class="space-y-1.5 mt-1">
+                        ${listHtml}
+                    </div>
+                    <p class="text-[10px] text-brand-gold font-medium pt-1">
+                        💡 Munim Ji Salah: Inhe WhatsApp par payment link bhejiye, recovery tej hogi!
+                    </p>
+                `;
+                appendMunimMessage(responseHtml);
+                speakHindiVoice(`Seth Ji, sabse bada udhaar ${dueCustomers[0]?.name || 'grahak'} par baaki hai.`);
+                return;
+            }
+
+            // --- CASE 7: ADD NEW CUSTOMER VIA AI ---
+            if (isAddCustAction) {
+                const responseHtml = `
+                    <p class="text-xs text-gray-100 leading-relaxed">
+                        Ji Seth Ji! Naye grahak ka khata kholne ke liye main form open kar raha hoon. Bas naam bataiye aur turant hisaab shuru kijiye:
+                    </p>
+                    <div class="pt-1">
+                        <button onclick="openAddCustModal()" class="w-full py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>+ Naya Grahak Add Karein</span>
+                        </button>
+                    </div>
+                `;
+                appendMunimMessage(responseHtml);
+                speakHindiVoice("Ji Seth Ji, naye grahak ka khata kholne ke liye form khol diya gaya hai.");
+                return;
+            }
+
+            // --- CASE 8: FRIENDLY GREETINGS & INTRO ---
+            if (raw.includes('namaste') || raw.includes('pranam') || raw.includes('hello') || raw.includes('hi') || raw.includes('kaise ho') || raw.includes('kon ho')) {
+                const totalDue = customers.filter(c => c.balance < 0).reduce((sum, c) => sum + Math.abs(c.balance), 0);
+                const responseHtml = `
+                    <p class="text-xs text-gray-100 leading-relaxed">
+                        Namaste Seth Ji! 🙏 Pranam! Kripa hai aapki. Main aapki Sharma Kirana Store ka niji digital Munim hoon.
+                        <br><br>
+                        Aapki dukan par abhi <span class="text-emerald-400 font-bold">${customers.length} grahak</span> hain aur market se kul <span class="text-brand-red font-bold">₹${totalDue.toLocaleString()}</span> udhaar vasoolna hai.
+                        <br><br>
+                        Hukum kijiye Seth Ji, kis grahak ka hisaab likhna hai ya dekhna hai?
+                    </p>
+                `;
+                appendMunimMessage(responseHtml);
+                speakHindiVoice("Namaste Seth Ji! Hukum kijiye, main aapki dukan ka poora hisaab jaanta hoon.");
+                return;
+            }
+
+            // --- CASE 9: SMART FALLBACK WITH HELPFUL PROMPTS ---
+            const totalDue = customers.filter(c => c.balance < 0).reduce((sum, c) => sum + Math.abs(c.balance), 0);
+            const responseHtml = `
+                <p class="text-xs text-gray-100 leading-relaxed">
+                    Seth Ji, main aapki dukan ka har hisaab samajhta hoon. Aap mujhse bol kar ya likh kar yeh karwa sakte hain:
+                </p>
+                <div class="space-y-1.5 text-[11px] bg-gray-900/80 p-2.5 rounded-xl border border-white/5 mt-1 text-gray-300">
+                    <div>🔴 <strong>Udhaar Likhna:</strong> "Ramesh ko ₹500 ka udhaar likho"</div>
+                    <div>🟢 <strong>Jama Likhna:</strong> "Suresh ne 1000 jama kiye"</div>
+                    <div>❓ <strong>Hisaab Poochna:</strong> "Ramesh ka hisaab kitna baaki hai?"</div>
+                    <div>📊 <strong>Bikri Poochna:</strong> "Aaj ki total bikri kitni hui?"</div>
+                    <div>💬 <strong>Reminder:</strong> "Ramesh ko reminder bhejo"</div>
+                </div>
+            `;
+            appendMunimMessage(responseHtml);
+            speakHindiVoice("Seth Ji, aap mujhse hisaab likhwa sakte hain ya kisi grahak ka balance pooch sakte hain.");
+        }
+
+        function speakHindiVoice(text) {
+            if ('speechSynthesis' in window) {
+                try {
+                    window.speechSynthesis.cancel();
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = 'hi-IN';
+                    u.rate = 1.0;
+                    window.speechSynthesis.speak(u);
+                } catch(e) {}
+            }
+        }
+    </script>
+</body>
+</html>
